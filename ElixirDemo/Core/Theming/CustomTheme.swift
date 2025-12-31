@@ -12,6 +12,12 @@ struct CustomTheme: ThemeProtocol, Codable, Identifiable {
     let displayName: String
     let isCustom: Bool = true
     
+    // New Protocol Requirements
+    var category: ThemeCategory = .rpg // Defaulting to RPG for custom themes for now
+    var fontName: String? = nil // System font default
+    var headerFontName: String? = nil
+    var emojis: ThemeEmojis = .rpg // Default emojis
+    
     // Stored as Hex Strings for Codable conformance
     let primaryColorHex: String
     let secondaryColorHex: String
@@ -34,10 +40,8 @@ struct CustomTheme: ThemeProtocol, Codable, Identifiable {
     var textPrimary: Color { .white }
     var textSecondary: Color { .white.opacity(0.7) }
     
-    // Custom Background Gradient using 3 colors if needed, simplified here to 2 for protocol match
-    // For specific 3-color gradient logic in the view, we might need to handle it differently,
-    // but here we map to the protocol's requirement.
-    // To support the 3-color bg from the old view, let's store 3 bg hexes but protocol only asks for 'backgroundGradient'.
+    // UI Metrics
+    var cornerRadius: CGFloat = 16.0
     
     let bgGradientColor1Hex: String
     let bgGradientColor2Hex: String

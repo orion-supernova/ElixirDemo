@@ -13,61 +13,56 @@ final class ThemeManager {
     static let shared = ThemeManager()
     
     var currentTheme: ThemeProtocol
+    var selectedCategory: ThemeCategory
+    
     private var customThemes: [CustomTheme] = []
     
     private let userDefaultsKey = "selectedThemeId"
     private let customThemesKey = "customThemes_v2"
     
-    private let defaultThemes: [ThemeProtocol] = [
-        RPGTheme(),
-        PlainTheme(),
-        CyberpunkTheme(),
-        RPGSubTheme(id: "rpg-ocean", displayName: "RPG: Deep Ocean", primaryColor: Color(hex: "0077BE"), secondaryColor: Color(hex: "00C3FF")),
-        RPGSubTheme(id: "rpg-forest", displayName: "RPG: Forest", primaryColor: Color(hex: "228B22"), secondaryColor: Color(hex: "32CD32"))
+    // Default Themes Collection
+    private let allDefaultThemes: [ThemeProtocol] = [
+        RPGTheme_Paladin(),
+        RPGTheme_Necromancer(),
+        RPGTheme_BloodMage(),
+        CyberpunkTheme_NeonCity(),
+        CyberpunkTheme_Matrix(),
+        CleanTheme()
     ]
     
     var availableThemes: [ThemeProtocol] {
-        defaultThemes + customThemes
+        allDefaultThemes + customThemes
+    }
+    
+    // Grouped for UI
+    var themesByCategory: [ThemeCategory: [ThemeProtocol]] {
+        Dictionary(grouping: availableThemes, by: { $0.category })
     }
     
     private init() {
-        // 1. Create defaults (locally or use the property if it were static, but here we can just init them or trust self.defaultThemes if we handle order).
-        // BUT 'defaultThemes' is an instance property. We cannot access 'self.defaultThemes' before full init.
-        // We will duplicate the literal list or make it static. Making it static or lazy is better?
-        // Let's just define the default list locally for init to use, and also have the property.
-        
-        // Actually, simplest fix: initialize properties first with temp values, then configure.
-        // OR better: use local variables for everything.
-        
-        let defaults: [ThemeProtocol] = [
-            RPGTheme(),
-            PlainTheme(),
-            CyberpunkTheme(),
-            RPGSubTheme(id: "rpg-ocean", displayName: "RPG: Deep Ocean", primaryColor: Color(hex: "0077BE"), secondaryColor: Color(hex: "00C3FF")),
-            RPGSubTheme(id: "rpg-forest", displayName: "RPG: Forest", primaryColor: Color(hex: "228B22"), secondaryColor: Color(hex: "32CD32"))
-        ]
-        
-        // 2. Load custom themes into a local var
+        // 1. Load Custom Themes
         var loadedCustomThemes: [CustomTheme] = []
         if let data = UserDefaults.standard.data(forKey: "customThemes_v2"),
            let decoded = try? JSONDecoder().decode([CustomTheme].self, from: data) {
             loadedCustomThemes = decoded
         }
-        
-        // 3. Assign to self stored properties
         self.customThemes = loadedCustomThemes
-        // self.defaultThemes is already initialized by the default value expression above
         
-        // 4. Determine current theme
-        let savedId = UserDefaults.standard.string(forKey: "selectedThemeId") ?? "rpg-default"
-        let all = defaults + loadedCustomThemes
-        self.currentTheme = all.first(where: { $0.id == savedId }) ?? RPGTheme()
+        // 2. Determine Current Theme
+        let all = allDefaultThemes + loadedCustomThemes
+        let savedId = UserDefaults.standard.string(forKey: "selectedThemeId") ?? "rpg-paladin"
+        
+        // Fallback to Paladin if saved ID is invalid
+        let validTheme = all.first(where: { $0.id == savedId }) ?? RPGTheme_Paladin()
+        self.currentTheme = validTheme
+        self.selectedCategory = validTheme.category
     }
     
     func setTheme(id: String) {
         if let theme = availableThemes.first(where: { $0.id == id }) {
-            withAnimation(.easeInOut) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 currentTheme = theme
+                selectedCategory = theme.category
             }
             UserDefaults.standard.set(id, forKey: userDefaultsKey)
         }
@@ -76,7 +71,7 @@ final class ThemeManager {
     func addCustomTheme(_ theme: CustomTheme) {
         customThemes.append(theme)
         saveCustomThemes()
-        // Automatically select the new theme
+        // Automatically select
         setTheme(id: theme.id)
     }
     
@@ -84,9 +79,9 @@ final class ThemeManager {
         customThemes.removeAll { $0.id == id }
         saveCustomThemes()
         
-        // If deleted theme was active, revert to default
+        // If active, revert to default
         if currentTheme.id == id {
-            setTheme(id: "rpg-default")
+            setTheme(id: "rpg-paladin")
         }
     }
     

@@ -15,6 +15,9 @@ struct SettingsView: View {
     @State private var showingAddTheme = false
     @State private var userStats: UserStats?
     
+    // For hierarchy selection
+    @State private var selectedCategoryForDisplay: ThemeCategory = .rpg
+    
     var body: some View {
         ZStack {
             // Background
@@ -31,8 +34,8 @@ struct SettingsView: View {
                         profileSection(stats: stats)
                     }
                     
-                    // Themes
-                    themesSection
+                    // Themes Hierarchy
+                    themeHierarchySection
                     
                     // About
                     aboutSection
@@ -46,6 +49,10 @@ struct SettingsView: View {
         .sheet(isPresented: $showingAddTheme) { AddCustomThemeView() }
         .onAppear {
             loadUserStats()
+            selectedCategoryForDisplay = themeManager.selectedCategory
+        }
+        .onChange(of: themeManager.selectedCategory) { _, newValue in
+            selectedCategoryForDisplay = newValue
         }
     }
     
@@ -86,70 +93,40 @@ struct SettingsView: View {
                 StatBadge(
                     value: "\(stats.currentLevel)",
                     label: "Level",
-                    icon: "star.fill",
+                    icon: themeManager.currentTheme.emojis.level,
                     color: themeManager.currentTheme.warningColor
                 )
                 
                 StatBadge(
                     value: "\(stats.currentStreak)",
                     label: "Streak",
-                    icon: "flame.fill",
+                    icon: themeManager.currentTheme.emojis.streak,
                     color: themeManager.currentTheme.errorColor
                 )
                 
                 StatBadge(
                     value: "\(stats.totalDosesTaken)",
                     label: "Doses",
-                    icon: "checkmark.circle.fill",
+                    icon: themeManager.currentTheme.emojis.check,
                     color: themeManager.currentTheme.successColor
                 )
-            }
-            
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack {
-                    Text("Title")
-                        .font(themeManager.currentTheme.font(for: .subheadline))
-                        .foregroundColor(themeManager.currentTheme.textSecondary)
-                    Spacer()
-                    Text(stats.currentTitle)
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.primaryColor)
-                }
-                
-                HStack {
-                    Text("Total XP")
-                        .font(themeManager.currentTheme.font(for: .subheadline))
-                        .foregroundColor(themeManager.currentTheme.textSecondary)
-                    Spacer()
-                    Text("\(stats.totalXP)")
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.textPrimary)
-                }
-                
-                HStack {
-                    Text("Completion Rate")
-                        .font(themeManager.currentTheme.font(for: .subheadline))
-                        .foregroundColor(themeManager.currentTheme.textSecondary)
-                    Spacer()
-                    Text("\(Int(stats.completionRate * 100))%")
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.successColor)
-                }
             }
             .padding(Spacing.md)
             .background(
                 RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
-                    .fill(.ultraThinMaterial)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    .fill(themeManager.currentTheme.surfaceColor)
+                    .stroke(themeManager.currentTheme.primaryColor.opacity(0.1), lineWidth: 1)
             )
         }
     }
     
-    // MARK: - Themes Section
-    private var themesSection: some View {
+    // MARK: - Theme Hierarchy Section
+    private var themeHierarchySection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
+            
+            // Title & Custom Button
             HStack {
-                Text("Themes")
+                Text("Theme Realm")
                     .font(themeManager.currentTheme.font(for: .headline))
                     .foregroundColor(themeManager.currentTheme.textPrimary)
                 
@@ -158,26 +135,51 @@ struct SettingsView: View {
                 Button(action: {
                     showingAddTheme = true
                 }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Custom")
-                    }
-                    .font(themeManager.currentTheme.font(for: .subheadline))
-                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                    Text("New Custom")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
                 }
             }
             
-            VStack(spacing: Spacing.sm) {
-                ForEach(themeManager.availableThemes, id: \.id) { theme in
-                    ThemeRow(
-                        theme: theme,
-                        isSelected: themeManager.currentTheme.id == theme.id,
-                        onSelect: {
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
-                                themeManager.setTheme(id: theme.id)
+            // Step 1: Category Selector (Horizontal)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.md) {
+                    ForEach(ThemeCategory.allCases) { category in
+                        CategoryButton(
+                            category: category,
+                            isSelected: selectedCategoryForDisplay == category,
+                            action: {
+                                withAnimation {
+                                    selectedCategoryForDisplay = category
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                }
+                .padding(.horizontal, 2)
+            }
+            
+            // Description of Category
+            Text(selectedCategoryForDisplay.description)
+                .font(themeManager.currentTheme.font(for: .caption))
+                .foregroundColor(themeManager.currentTheme.textSecondary)
+                .padding(.vertical, Spacing.xs)
+            
+            // Step 2: Variants Grid
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
+                if let themes = themeManager.themesByCategory[selectedCategoryForDisplay] {
+                    ForEach(themes, id: \.id) { theme in
+                        ThemeVariantCard(
+                            theme: theme,
+                            isSelected: themeManager.currentTheme.id == theme.id,
+                            onSelect: {
+                                themeManager.setTheme(id: theme.id)
+                            },
+                            onDelete: theme.isCustom ? {
+                                themeManager.deleteCustomTheme(id: theme.id)
+                            } : nil
+                        )
+                    }
                 }
             }
         }
@@ -200,8 +202,7 @@ struct SettingsView: View {
             .padding(Spacing.md)
             .background(
                 RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
-                    .fill(.ultraThinMaterial)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    .fill(themeManager.currentTheme.surfaceColor)
             )
         }
     }
@@ -220,65 +221,84 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Theme Row
-struct ThemeRow: View {
+// MARK: - Subcomponents
+
+struct CategoryButton: View {
+    @Environment(ThemeManager.self) private var themeManager
+    let category: ThemeCategory
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(category.rawValue)
+                .font(themeManager.currentTheme.font(for: .subheadline))
+                .fontWeight(isSelected ? .bold : .regular)
+                .foregroundColor(isSelected ? themeManager.currentTheme.textPrimary : themeManager.currentTheme.textSecondary)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isSelected ? themeManager.currentTheme.primaryColor : themeManager.currentTheme.surfaceColor)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(themeManager.currentTheme.primaryColor.opacity(isSelected ? 0 : 0.3), lineWidth: 1)
+                )
+        }
+    }
+}
+
+struct ThemeVariantCard: View {
+    @Environment(ThemeManager.self) private var themeManager
     let theme: ThemeProtocol
     let isSelected: Bool
     let onSelect: () -> Void
-    
-    @Environment(ThemeManager.self) private var themeManager
+    let onDelete: (() -> Void)?
     
     var body: some View {
         Button(action: onSelect) {
-            HStack(spacing: Spacing.md) {
-                // Theme Preview
-                HStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(theme.backgroundColor)
-                        .frame(width: 20, height: 40)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(theme.surfaceColor)
-                        .frame(width: 20, height: 40)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(theme.primaryColor)
-                        .frame(width: 20, height: 40)
+            VStack(spacing: Spacing.sm) {
+                // Mini Preview
+                HStack(spacing: 0) {
+                    Rectangle().fill(theme.primaryColor)
+                    Rectangle().fill(theme.secondaryColor)
+                    Rectangle().fill(theme.accentColor)
                 }
+                .frame(height: 60)
+                .cornerRadius(8)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? .white : Color.clear, lineWidth: 2)
                 )
                 
-                // Theme Info
-                VStack(alignment: .leading, spacing: 2) {
+                HStack {
                     Text(theme.displayName)
-                        .font(themeManager.currentTheme.font(for: .headline))
+                        .font(themeManager.currentTheme.font(for: .caption))
                         .foregroundColor(themeManager.currentTheme.textPrimary)
                     
-                    if theme.isCustom {
-                        Text("Custom")
-                            .font(themeManager.currentTheme.font(for: .caption))
-                            .foregroundColor(themeManager.currentTheme.textSecondary)
+                    Spacer()
+                    
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(themeManager.currentTheme.primaryColor)
+                    }
+                    
+                    if let onDelete = onDelete {
+                        Button(action: onDelete) {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(themeManager.currentTheme.errorColor)
+                        }
                     }
                 }
-                
-                Spacer()
-                
-                // Selection Indicator
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(theme.primaryColor)
-                        .font(.system(size: 24))
-                }
             }
-            .padding(Spacing.md)
+            .padding(Spacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.white.opacity(0.1) : Color.white.opacity(0.05))
+                    .fill(themeManager.currentTheme.surfaceColor)
+                    .shadow(color: isSelected ? theme.primaryColor.opacity(0.4) : Color.clear, radius: 10)
             )
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -292,9 +312,14 @@ struct SettingsRow: View {
     
     var body: some View {
         HStack {
-            Image(systemName: icon)
-                .foregroundColor(themeManager.currentTheme.textSecondary)
-                .frame(width: 24)
+            // Check if icon is an SF Symbol (simplistic check)
+            if icon.contains(".") { 
+                 Image(systemName: icon)
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                    .frame(width: 24)
+            } else {
+                Text(icon) // Emoji support for things like flags or custom emojis
+            }
             
             Text(title)
                 .font(themeManager.currentTheme.font(for: .callout))
@@ -318,16 +343,21 @@ struct SettingsRow: View {
 struct StatBadge: View {
     let value: String
     let label: String
-    let icon: String
+    let icon: String // Can be SF Symbol or Emoji
     let color: Color
     
     @Environment(ThemeManager.self) private var themeManager
     
     var body: some View {
         VStack(spacing: Spacing.xs) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(color)
+            if icon.contains(".") { // Heuristic for SF Symbol
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(color)
+            } else {
+                Text(icon)
+                    .font(.system(size: 24))
+            }
             
             Text(value)
                 .font(themeManager.currentTheme.font(for: .title2))
@@ -339,11 +369,6 @@ struct StatBadge: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
-                .fill(.ultraThinMaterial)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
     }
 }
 

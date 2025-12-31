@@ -223,9 +223,17 @@ struct AddCustomThemeView: View {
     
     // MARK: - Save Logic
     private func saveTheme() {
+        // Defaults for now. In a future update we can let users choose category/font/emojis.
+        let defaultCategory: ThemeCategory = .rpg 
+        let defaultEmojis: ThemeEmojis = .rpg
+        
         let theme = CustomTheme(
             id: UUID().uuidString,
             displayName: themeName,
+            category: defaultCategory,
+            fontName: nil, // Use system font
+            headerFontName: nil,
+            emojis: defaultEmojis,
             primaryColorHex: primaryColor.toHex(),
             secondaryColorHex: secondaryColor.toHex(),
             accentColorHex: accentColor.toHex(),
@@ -234,6 +242,7 @@ struct AddCustomThemeView: View {
             successColorHex: successColor.toHex(),
             warningColorHex: warningColor.toHex(),
             errorColorHex: errorColor.toHex(),
+            cornerRadius: 16,
             bgGradientColor1Hex: bgColor1.toHex(),
             bgGradientColor2Hex: bgColor2.toHex(),
             bgGradientColor3Hex: bgColor3.toHex()
@@ -244,13 +253,12 @@ struct AddCustomThemeView: View {
     }
 }
 
-// MARK: - Color to Hex Extension
+// MARK: - Color to Hex Extension (if not already global, keeping here for safety in this file)
 extension Color {
     func toHex() -> String {
         let components = UIColor(self).cgColor.components ?? [0, 0, 0, 1]
         let r = Int(components[0] * 255.0)
         let g = Int(components[1] * 255.0)
-        // Handle monochrome (only 2 components)
         let b = components.count > 2 ? Int(components[2] * 255.0) : Int(components[0] * 255.0)
         return String(format: "%02X%02X%02X", r, g, b)
     }

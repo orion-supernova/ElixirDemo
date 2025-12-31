@@ -7,52 +7,90 @@
 
 import SwiftUI
 
-/// Defines the blueprint for all themes in the application.
+// MARK: - Theme Category Hierarchy
+enum ThemeCategory: String, CaseIterable, Identifiable, Codable {
+    case rpg = "RPG"
+    case cyberpunk = "Cyberpunk"
+    case clean = "Clean"
+    
+    var id: String { rawValue }
+    
+    var description: String {
+        switch self {
+        case .rpg: return "Fantasy aesthetics with serif fonts and magical effects."
+        case .cyberpunk: return "High-contrast neon visuals with tech-inspired fonts."
+        case .clean: return "Modern, minimalist iOS native aesthetics."
+        }
+    }
+}
+
+// MARK: - Theme Emojis
+struct ThemeEmojis: Codable {
+    let check: String
+    let uncheck: String
+    let streak: String
+    let level: String
+    let xp: String
+    let currency: String
+    let health: String
+    
+    static let rpg = ThemeEmojis(
+        check: "⚔️", uncheck: "🛡️", streak: "🔥", level: "⭐", xp: "✨", currency: "💎", health: "❤️"
+    )
+    
+    static let cyberpunk = ThemeEmojis(
+        check: "💾", uncheck: "🔋", streak: "⚡", level: "📶", xp: "💿", currency: "💠", health: "❤️"
+    )
+    
+    static let clean = ThemeEmojis(
+        check: "✓", uncheck: "○", streak: "🔥", level: "★", xp: "pts", currency: "$", health: "♥"
+    )
+}
+
+// MARK: - Theme Protocol
 protocol ThemeProtocol: Identifiable {
     var id: String { get }
     var displayName: String { get }
+    var category: ThemeCategory { get }
     var isCustom: Bool { get }
     
-    // MARK: - Color Palette
+    // MARK: Typography
+    // Custom font name (e.g., "MedievalSharp-Regular"). Nil implies system font.
+    var fontName: String? { get }
+    var headerFontName: String? { get }
+    
+    // MARK: Emojis
+    var emojis: ThemeEmojis { get }
+    
+    // MARK: Colors - Palette
+    var backgroundGradient: LinearGradient { get }
+    
     var primaryColor: Color { get }
     var secondaryColor: Color { get }
     var accentColor: Color { get }
-    var backgroundColor: Color { get }
-    var surfaceColor: Color { get }
     
-    // MARK: - Semantic Colors
-    var successColor: Color { get }
-    var warningColor: Color { get }
-    var errorColor: Color { get }
+    // Semantic Colors
+    var surfaceColor: Color { get }
     var textPrimary: Color { get }
     var textSecondary: Color { get }
     
-    // MARK: - Gradients
-    var backgroundGradient: LinearGradient { get }
+    var successColor: Color { get }
+    var warningColor: Color { get }
+    var errorColor: Color { get }
+    
+    // MARK: UI Metrics
+    var cornerRadius: CGFloat { get }
+    
+    // MARK: Helper for Gradients
     var primaryGradient: LinearGradient { get }
     
-    // MARK: - Typography
+    // MARK: Helper for Fonts
     func font(for style: Font.TextStyle) -> Font
-    
-    // MARK: - UI Configuration
-    var cornerRadius: CGFloat { get }
-    var buttonScale: CGFloat { get }
 }
 
+// MARK: - Default Implementation
 extension ThemeProtocol {
-    // Default values
-    var isCustom: Bool { false }
-    var cornerRadius: CGFloat { 16.0 }
-    var buttonScale: CGFloat { 0.95 }
-    
-    var backgroundGradient: LinearGradient {
-        LinearGradient(
-            colors: [backgroundColor, backgroundColor.opacity(0.8)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-    
+    // Default implementation for primary gradient based on colors
     var primaryGradient: LinearGradient {
         LinearGradient(
             colors: [primaryColor, secondaryColor],
@@ -61,19 +99,35 @@ extension ThemeProtocol {
         )
     }
     
+    // Dynamic Font Loader
     func font(for style: Font.TextStyle) -> Font {
+        // Size mapping for standard styles
+        let size: CGFloat
         switch style {
-        case .largeTitle: return .system(size: 34, weight: .bold, design: .rounded)
-        case .title: return .system(size: 28, weight: .bold, design: .rounded)
-        case .title2: return .system(size: 22, weight: .semibold, design: .rounded)
-        case .title3: return .system(size: 20, weight: .semibold, design: .rounded)
-        case .headline: return .system(size: 17, weight: .semibold, design: .rounded)
-        case .body: return .system(size: 17, weight: .regular, design: .rounded)
-        case .callout: return .system(size: 16, weight: .regular, design: .rounded)
-        case .subheadline: return .system(size: 15, weight: .medium, design: .rounded)
-        case .footnote: return .system(size: 13, weight: .regular, design: .rounded)
-        case .caption: return .system(size: 12, weight: .regular, design: .rounded)
-        default: return .system(style, design: .rounded)
+        case .largeTitle: size = 34
+        case .title: size = 28
+        case .title2: size = 22
+        case .title3: size = 20
+        case .headline: size = 17
+        case .body: size = 17
+        case .callout: size = 16
+        case .subheadline: size = 15
+        case .footnote: size = 13
+        case .caption: size = 12
+        case .caption2: size = 11
+        @unknown default: size = 17
+        }
+        
+        // Use custom font if available, otherwise system
+        if let customFont = (style == .largeTitle || style == .title || style == .title2 || style == .title3 || style == .headline) ? headerFontName : fontName {
+            // Check if it's the Clean theme (which should force system) OR just fallback
+            // For now, if fontName is nil, we use standard.
+            return Font.custom(customFont, size: size, relativeTo: style)
+        } else if let mainFont = fontName {
+             return Font.custom(mainFont, size: size, relativeTo: style)
+        } else {
+            // Clean/System theme
+            return Font.system(style, design: .default)
         }
     }
 }
