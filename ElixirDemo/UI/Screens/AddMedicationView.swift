@@ -10,6 +10,7 @@ import SwiftData
 
 struct AddMedicationView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.themeManager) private var themeManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel: AddMedicationViewModel?
@@ -17,7 +18,7 @@ struct AddMedicationView: View {
     var body: some View {
         ZStack {
             // Background
-            Color.backgroundGradient.ignoresSafeArea()
+            themeManager.currentTheme.backgroundGradient.ignoresSafeArea()
 
             if let vm = viewModel {
                 contentView(viewModel: vm)
@@ -63,8 +64,9 @@ struct AddMedicationView: View {
                 // Save Button
                 saveButton(viewModel: viewModel)
             }
-            .padding(Spacing.md)
-            .padding(.bottom, Spacing.xxl)
+            .padding(.horizontal, Spacing.md)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, 120)
         }
     }
 

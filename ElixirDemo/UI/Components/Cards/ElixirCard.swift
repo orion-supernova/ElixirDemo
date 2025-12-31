@@ -175,7 +175,7 @@ struct ScaleButtonStyle: ButtonStyle {
     )
 
     return ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ElixirCard(
             medication: medication,
@@ -184,6 +184,7 @@ struct ScaleButtonStyle: ButtonStyle {
         )
         .padding()
     }
+    .environment(ThemeManager.shared)
 }
 
 #Preview("Taken Dose") {
@@ -201,7 +202,7 @@ struct ScaleButtonStyle: ButtonStyle {
     )
 
     return ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ElixirCard(
             medication: medication,
@@ -210,6 +211,7 @@ struct ScaleButtonStyle: ButtonStyle {
         )
         .padding()
     }
+    .environment(ThemeManager.shared)
 }
 
 #Preview("Multiple Cards") {
@@ -220,7 +222,7 @@ struct ScaleButtonStyle: ButtonStyle {
     ]
 
     return ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ScrollView {
             VStack(spacing: Spacing.md) {
@@ -238,4 +240,5 @@ struct ScaleButtonStyle: ButtonStyle {
             .padding()
         }
     }
+    .environment(ThemeManager.shared)
 }

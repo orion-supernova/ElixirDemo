@@ -113,7 +113,7 @@ struct ProgressOrb: View {
 // MARK: - Preview
 #Preview("Partial Progress") {
     ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ProgressOrb(
             progress: 0.6,
@@ -121,11 +121,12 @@ struct ProgressOrb: View {
             takenDoses: 3
         )
     }
+    .environment(ThemeManager.shared)
 }
 
 #Preview("Complete Progress") {
     ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ProgressOrb(
             progress: 1.0,
@@ -133,11 +134,12 @@ struct ProgressOrb: View {
             takenDoses: 4
         )
     }
+    .environment(ThemeManager.shared)
 }
 
 #Preview("Zero Progress") {
     ZStack {
-        Color.backgroundGradient.ignoresSafeArea()
+        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
 
         ProgressOrb(
             progress: 0.0,
@@ -145,4 +147,5 @@ struct ProgressOrb: View {
             takenDoses: 0
         )
     }
+    .environment(ThemeManager.shared)
 }

@@ -10,80 +10,39 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.themeManager) private var themeManager
     @State private var viewModel: DashboardViewModel?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background Gradient
-                Color.backgroundGradient
-                    .ignoresSafeArea()
+        ZStack {
+            // Background Gradient
+            themeManager.currentTheme.backgroundGradient
+                .ignoresSafeArea()
 
-                if let viewModel = viewModel {
-                    ZStack(alignment: .bottomTrailing) {
-                        ScrollView {
-                            VStack(spacing: Spacing.xl) {
-                                // Header Section
-                                headerSection(viewModel: viewModel)
+            if let viewModel = viewModel {
+                ZStack(alignment: .bottomTrailing) {
+                    ScrollView {
+                        VStack(spacing: Spacing.xl) {
+                            // Header Section
+                            headerSection(viewModel: viewModel)
 
-                                // Week Calendar Strip
-                                weekCalendarStrip(viewModel: viewModel)
+                            // Progress Orb
+                            progressOrbSection(viewModel: viewModel)
 
-                                // Progress Orb
-                                progressOrbSection(viewModel: viewModel)
+                            // Stats Summary
+                            statsSummary(viewModel: viewModel)
 
-                                // Stats Summary
-                                statsSummary(viewModel: viewModel)
-
-                                // Dose List
-                                doseListSection(viewModel: viewModel)
-                            }
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.top, Spacing.md)
-                            .padding(.bottom, 100)
+                            // Dose List
+                            doseListSection(viewModel: viewModel)
                         }
-
-                        // Floating Action Button
-                        if viewModel.totalDoses > 0 {
-                            NavigationLink(destination: AddMedicationView()) {
-                                HStack(spacing: Spacing.sm) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.system(size: 24))
-                                    Text("Add Ritual")
-                                        .ritualFont(.ritualHeadline)
-                                }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, Spacing.lg)
-                                .padding(.vertical, Spacing.md)
-                                .background(Color.elixirGradient)
-                                .cornerRadius(25)
-                                .shadow(color: Color.potionPurple.opacity(0.6), radius: 20, x: 0, y: 10)
-                            }
-                            .padding(Spacing.lg)
-                        }
-                    }
-                } else {
-                    ProgressView()
-                        .tint(.potionPurple)
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Elixir: Daily Ritual")
-                        .ritualFont(.ritualTitle3)
-                        .foregroundStyle(Color.elixirGradient)
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        // Navigate to profile/stats
-                    }) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundStyle(Color.elixirGradient)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.top, Spacing.md)
+                        .padding(.bottom, 100)
                     }
                 }
+            } else {
+                ProgressView()
+                    .tint(.potionPurple)
             }
         }
         .onAppear {
@@ -140,35 +99,6 @@ struct DashboardView: View {
                 }
                 .padding(Spacing.sm)
                 .glassCard(cornerRadius: 12)
-            }
-        }
-    }
-
-    // MARK: - Week Calendar Strip
-    @ViewBuilder
-    private func weekCalendarStrip(viewModel: DashboardViewModel) -> some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(viewModel.getWeekDays(for: viewModel.selectedDate), id: \.self) { date in
-                        WeekDayCell(
-                            date: date,
-                            isSelected: viewModel.isDateSelected(date),
-                            isToday: viewModel.isDateToday(date),
-                            completionStatus: viewModel.getCompletionStatus(for: date),
-                            onTap: {
-                                withAnimation(.ritualSpring) {
-                                    viewModel.selectDate(date)
-                                }
-                            }
-                        )
-                        .id(date)
-                    }
-                }
-                .padding(.horizontal, Spacing.sm)
-            }
-            .onAppear {
-                proxy.scrollTo(viewModel.selectedDate, anchor: .center)
             }
         }
     }
@@ -266,18 +196,18 @@ struct DashboardView: View {
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
 
-            NavigationLink(destination: AddMedicationView()) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add Ritual")
-                }
-                .ritualFont(.ritualHeadline)
-                .foregroundColor(.white)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, Spacing.md)
-                .background(Color.elixirGradient)
-                .cornerRadius(12)
+            HStack {
+                Image(systemName: "plus.circle.fill")
+                Text("Use the menu below to add your first ritual")
             }
+            .ritualFont(.ritualCallout)
+            .foregroundColor(.white.opacity(0.8))
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.1))
+            )
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.xxl)
@@ -292,72 +222,6 @@ struct DashboardView: View {
         case 12..<17: return "Good Afternoon"
         default: return "Good Evening"
         }
-    }
-}
-
-// MARK: - Week Day Cell
-struct WeekDayCell: View {
-    let date: Date
-    let isSelected: Bool
-    let isToday: Bool
-    let completionStatus: CompletionStatus
-    let onTap: () -> Void
-
-    private var dayLetter: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return String(formatter.string(from: date).prefix(1))
-    }
-
-    private var dayNumber: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
-    }
-
-    var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: Spacing.xs) {
-                Text(dayLetter)
-                    .ritualFont(.ritualCaption)
-                    .foregroundColor(isSelected ? .white : .white.opacity(0.6))
-
-                ZStack {
-                    if isSelected {
-                        Circle()
-                            .fill(Color.elixirGradient)
-                            .frame(width: 44, height: 44)
-                    } else {
-                        Circle()
-                            .fill(Color.clear)
-                            .frame(width: 44, height: 44)
-                    }
-
-                    if completionStatus != .none {
-                        Circle()
-                            .strokeBorder(completionStatus.color, lineWidth: 2)
-                            .frame(width: 44, height: 44)
-                    }
-
-                    Text(dayNumber)
-                        .ritualFont(.ritualHeadline)
-                        .foregroundColor(isSelected ? .white : .primary)
-                }
-
-                if isToday && !isSelected {
-                    Circle()
-                        .fill(Color.potionPurple)
-                        .frame(width: 4, height: 4)
-                } else {
-                    Circle()
-                        .fill(Color.clear)
-                        .frame(width: 4, height: 4)
-                }
-            }
-            .frame(width: 60)
-            .padding(.vertical, Spacing.sm)
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -406,15 +270,13 @@ struct StatCard: View {
         configurations: [modelConfiguration]
     )
 
-    return NavigationStack {
-        DashboardView()
-            .modelContainer(container)
-    }
+    return DashboardView()
+        .modelContainer(container)
+        .environment(ThemeManager.shared)
 }
 
 #Preview("Dashboard with Data") {
-    NavigationStack {
-        DashboardView()
-            .modelContainer(DataController.preview)
-    }
+    DashboardView()
+        .modelContainer(DataController.preview)
+        .environment(ThemeManager.shared)
 }

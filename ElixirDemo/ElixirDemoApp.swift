@@ -10,12 +10,13 @@ import SwiftData
 
 @main
 struct ElixirDemoApp: App {
+    @State private var themeManager = ThemeManager.shared
+
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                DashboardView()
-            }
-            .preferredColorScheme(.dark)
+            MainTabView()
+                .preferredColorScheme(.dark)
+                .environment(themeManager)
         }
         .modelContainer(DataController.shared.container)
     }
