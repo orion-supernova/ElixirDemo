@@ -27,7 +27,6 @@ struct MainTabView: View {
                         CircularMenu(selectedTab: $selectedTab)
                             .padding(.leading, Spacing.md)
                             .padding(.bottom, Spacing.xl)
-
                         Spacer()
                     }
                 }

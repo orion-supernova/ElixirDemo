@@ -50,10 +50,10 @@ struct CircularMenu: View {
                         .fill(themeManager.currentTheme.primaryGradient)
                         .frame(width: 64, height: 64)
                         .shadow(
-                            color: themeManager.currentTheme.primaryColor.opacity(0.6),
-                            radius: 20,
+                            color: Color.black.opacity(0.3),
+                            radius: 10,
                             x: 0,
-                            y: 10
+                            y: 5
                         )
                     
                     Image(systemName: isExpanded ? "xmark" : "sparkles")
@@ -68,11 +68,11 @@ struct CircularMenu: View {
     
     // MARK: - Angle Calculation
     private func angleForIndex(_ index: Int) -> Double {
-        // Position items on the RIGHT side of the button
-        // -45° = top-right, 0° = right, 45° = bottom-right
+        // Position items in an arc from Top to Right (since button is Bottom-Left)
+        // -90 = Top, 0 = Right.
         let totalItems = Double(menuItems.count)
-        let startAngle = -45.0  // Top-right
-        let endAngle = 45.0     // Bottom-right
+        let startAngle = -90.0 // Top
+        let endAngle = 0.0     // Right
         let angleRange = endAngle - startAngle
         
         if totalItems == 1 {
@@ -107,7 +107,7 @@ struct MenuButton: View {
                         .fill(isSelected ?
                               themeManager.currentTheme.primaryGradient :
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.2)],
+                                    colors: [Color.white.opacity(0.1)],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )

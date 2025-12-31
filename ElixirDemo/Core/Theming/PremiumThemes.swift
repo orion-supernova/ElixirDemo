@@ -26,13 +26,17 @@ struct RPGTheme_Paladin: ThemeProtocol {
     // Palette: Royal Blue, Gold, White
     var backgroundGradient: LinearGradient {
         LinearGradient(
-            colors: [Color(hex: "0F172A"), Color(hex: "1E3A8A"), Color(hex: "1E40AF")],
-            startPoint: .top,
-            endPoint: .bottom
+            colors: [
+                Color(hex: "0F172A"), // Dark Navy
+                Color(hex: "1e1b4b"), // Very Dark Navy (Matte)
+                Color(hex: "0f172a")  // Slate 900
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
     
-    var primaryColor: Color = Color(hex: "F59E0B") // Gold
+    var primaryColor: Color = Color(hex: "FFD700") // Pure Gold
     var secondaryColor: Color = Color(hex: "3B82F6") // Royal Blue
     var accentColor: Color = Color(hex: "FCD34D") // Light Gold
     
@@ -130,15 +134,19 @@ struct CyberpunkTheme_NeonCity: ThemeProtocol {
     // Palette: Pitch Black, Hot Pink, Cyan
     var backgroundGradient: LinearGradient {
         LinearGradient(
-            colors: [Color(hex: "000000"), Color(hex: "0F0F0F"), Color(hex: "1a0514")],
-            startPoint: .top,
-            endPoint: .bottom
+            colors: [
+                Color(hex: "050505"), // Deep Black
+                Color(hex: "2d001e"), // Dark Magenta
+                Color(hex: "000a12")  // Dark Cyan tint
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
     
-    var primaryColor: Color = Color(hex: "FF00FF") // Hot Pink
-    var secondaryColor: Color = Color(hex: "00FFFF") // Cyan
-    var accentColor: Color = Color(hex: "FFFF00") // Electric Yellow
+    var primaryColor: Color = Color(hex: "FF0099") // Neon Pink
+    var secondaryColor: Color = Color(hex: "00FFEA") // Neon Cyan
+    var accentColor: Color = Color(hex: "CCFF00") // Toxic Green
     
     var surfaceColor: Color = Color(hex: "111111").opacity(0.9)
     var textPrimary: Color = .white

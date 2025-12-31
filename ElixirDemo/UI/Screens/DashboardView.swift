@@ -63,9 +63,8 @@ struct DashboardView: View {
                 
                 if let stats = viewModel.userStats {
                     HStack(spacing: Spacing.sm) {
-                        Image(systemName: "star.fill")
+                        Text(themeManager.currentTheme.emojis.level)
                             .font(.system(size: 12))
-                            .foregroundColor(themeManager.currentTheme.accentColor)
                         
                         Text("Level \(stats.currentLevel) • \(stats.currentTitle)")
                             .font(themeManager.currentTheme.font(for: .subheadline))
@@ -137,21 +136,21 @@ struct DashboardView: View {
             StatCard(
                 title: "Completed",
                 value: "\(viewModel.takenDoses)",
-                iconName: "checkmark.circle.fill",
+                iconName: themeManager.currentTheme.emojis.check,
                 color: themeManager.currentTheme.successColor
             )
             
             StatCard(
                 title: "Pending",
                 value: "\(viewModel.pendingDoses)",
-                iconName: "clock.fill",
+                iconName: themeManager.currentTheme.emojis.uncheck,
                 color: themeManager.currentTheme.accentColor
             )
             
             StatCard(
                 title: "Missed",
                 value: "\(viewModel.missedDoses)",
-                iconName: "exclamationmark.triangle.fill",
+                iconName: "exclamationmark.triangle.fill", // Keep SF for generic warning logic or add to protocol? Protocol has no 'warning' emoji.
                 color: themeManager.currentTheme.errorColor
             )
         }

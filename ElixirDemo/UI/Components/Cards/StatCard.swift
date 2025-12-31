@@ -17,9 +17,14 @@ struct StatCard: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: iconName)
-                .font(.system(size: 20))
-                .foregroundStyle(color)
+            if iconName.contains(".") {
+                Image(systemName: iconName)
+                    .font(.system(size: 20))
+                    .foregroundStyle(color)
+            } else {
+                Text(iconName)
+                    .font(.system(size: 20))
+            }
             
             Text(value)
                 .font(themeManager.currentTheme.font(for: .title2))
@@ -36,7 +41,7 @@ struct StatCard: View {
                 .fill(.ultraThinMaterial)
                 .stroke(
                     LinearGradient(
-                        colors: [.white.opacity(0.2), .white.opacity(0.05)],
+                        colors: [.white.opacity(0.1), .white.opacity(0.02)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
