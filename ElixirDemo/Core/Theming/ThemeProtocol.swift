@@ -24,6 +24,18 @@ enum ThemeCategory: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+// MARK: - Theme Identifiers
+enum ThemeIdentifier: String, CaseIterable {
+    case paladin = "rpg-paladin"
+    case necromancer = "rpg-necromancer"
+    case bloodMage = "rpg-bloodmage"
+    case fairy = "rpg-fairy"
+    case neonCity = "cyberpunk-neon"
+    case matrix = "cyberpunk-matrix"
+    case system = "clean-ios"
+    case lilac = "clean-lilac"
+}
+
 // MARK: - Theme Emojis
 struct ThemeEmojis: Codable {
     let check: String

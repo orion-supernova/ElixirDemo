@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - RPG THEMES
 struct RPGTheme_Paladin: ThemeProtocol {
-    let id = "rpg-paladin"
+    let id = ThemeIdentifier.paladin.rawValue
     let displayName = "Paladin"
     let category: ThemeCategory = .rpg
     let isCustom = false
@@ -52,7 +52,7 @@ struct RPGTheme_Paladin: ThemeProtocol {
 }
 
 struct RPGTheme_Necromancer: ThemeProtocol {
-    let id = "rpg-necromancer"
+    let id = ThemeIdentifier.necromancer.rawValue
     let displayName = "Necromancer"
     let category: ThemeCategory = .rpg
     let isCustom = false
@@ -86,7 +86,7 @@ struct RPGTheme_Necromancer: ThemeProtocol {
 }
 
 struct RPGTheme_BloodMage: ThemeProtocol {
-    let id = "rpg-bloodmage"
+    let id = ThemeIdentifier.bloodMage.rawValue
     let displayName = "Blood Mage"
     let category: ThemeCategory = .rpg
     let isCustom = false
@@ -120,7 +120,7 @@ struct RPGTheme_BloodMage: ThemeProtocol {
 }
 
 struct RPGTheme_Fairy: ThemeProtocol {
-    let id = "rpg-fairy"
+    let id = ThemeIdentifier.fairy.rawValue
     let displayName = "Fae Woods"
     let category: ThemeCategory = .rpg
     let isCustom = false
@@ -161,7 +161,7 @@ struct RPGTheme_Fairy: ThemeProtocol {
 
 // MARK: - CYBERPUNK THEMES
 struct CyberpunkTheme_NeonCity: ThemeProtocol {
-    let id = "cyberpunk-neon"
+    let id = ThemeIdentifier.neonCity.rawValue
     let displayName = "Neon City"
     let category: ThemeCategory = .cyberpunk
     let isCustom = false
@@ -200,7 +200,7 @@ struct CyberpunkTheme_NeonCity: ThemeProtocol {
 }
 
 struct CyberpunkTheme_Matrix: ThemeProtocol {
-    let id = "cyberpunk-matrix"
+    let id = ThemeIdentifier.matrix.rawValue
     let displayName = "The Construct"
     let category: ThemeCategory = .cyberpunk
     let isCustom = false
@@ -235,7 +235,7 @@ struct CyberpunkTheme_Matrix: ThemeProtocol {
 
 // MARK: - CLEAN THEMES
 struct CleanTheme: ThemeProtocol {
-    let id = "clean-ios"
+    let id = ThemeIdentifier.system.rawValue
     let displayName = "System"
     let category: ThemeCategory = .clean
     let isCustom = false
@@ -270,7 +270,7 @@ struct CleanTheme: ThemeProtocol {
 }
 
 struct CleanTheme_Lilac: ThemeProtocol {
-    let id = "clean-lilac"
+    let id = ThemeIdentifier.lilac.rawValue
     let displayName = "Lilac Dream"
     let category: ThemeCategory = .clean
     let isCustom = false
