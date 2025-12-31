@@ -310,26 +310,23 @@ struct DashboardView: View {
             } else {
                 ForEach(viewModel.doseLogs, id: \.id) { doseLog in
                     if let medication = doseLog.medication {
-                        ElixirCard(
-                            medication: medication,
-                            doseLog: doseLog,
-                            onCheckmarkTapped: {
-                                viewModel.toggleDoseStatus(for: doseLog)
-                            },
-                            onMarkMissed: {
-                                viewModel.markDoseAsMissed(doseLog)
-                            },
-                            onMarkSkipped: {
-                                viewModel.markDoseAsSkipped(doseLog)
-                            }
-                        )
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                doseLogToDelete = doseLog
-                                showDeleteConfirmation = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
+                        SwipeActionView(cornerRadius: 20, onDelete: {
+                            doseLogToDelete = doseLog
+                            showDeleteConfirmation = true
+                        }) {
+                            ElixirCard(
+                                medication: medication,
+                                doseLog: doseLog,
+                                onCheckmarkTapped: {
+                                    viewModel.toggleDoseStatus(for: doseLog)
+                                },
+                                onMarkMissed: {
+                                    viewModel.markDoseAsMissed(doseLog)
+                                },
+                                onMarkSkipped: {
+                                    viewModel.markDoseAsSkipped(doseLog)
+                                }
+                            )
                         }
                     }
                 }
