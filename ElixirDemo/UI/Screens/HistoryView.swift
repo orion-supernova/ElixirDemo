@@ -139,8 +139,8 @@ struct HistoryView: View {
 
             // Calendar days
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.xs), count: 7), spacing: Spacing.xs) {
-                ForEach(daysInMonth, id: \.self) { date in
-                    if let date = date {
+                ForEach(daysInMonth) { day in
+                    if let date = day.date {
                         calendarDayCell(for: date)
                     } else {
                         Color.clear
@@ -282,7 +282,12 @@ struct HistoryView: View {
         return formatter.shortWeekdaySymbols
     }
 
-    private var daysInMonth: [Date?] {
+    private struct CalendarDay: Identifiable {
+        let id = UUID()
+        let date: Date?
+    }
+
+    private var daysInMonth: [CalendarDay] {
         guard let monthInterval = Calendar.current.dateInterval(of: .month, for: currentMonth),
               let monthFirstWeek = Calendar.current.dateInterval(of: .weekOfMonth, for: monthInterval.start) else {
             return []
@@ -290,18 +295,18 @@ struct HistoryView: View {
 
         let monthDays = Calendar.current.dateComponents([.day], from: monthInterval.start, to: monthInterval.end).day ?? 0
 
-        var days: [Date?] = []
+        var days: [CalendarDay] = []
 
         // Add leading empty cells
         let firstWeekday = Calendar.current.component(.weekday, from: monthInterval.start)
         for _ in 0..<(firstWeekday - 1) {
-            days.append(nil)
+            days.append(CalendarDay(date: nil))
         }
 
         // Add month days
         for day in 0..<monthDays {
             if let date = Calendar.current.date(byAdding: .day, value: day, to: monthInterval.start) {
-                days.append(date)
+                days.append(CalendarDay(date: date))
             }
         }
 
