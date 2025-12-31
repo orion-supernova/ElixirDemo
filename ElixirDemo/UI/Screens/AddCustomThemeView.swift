@@ -2,15 +2,15 @@
 //  AddCustomThemeView.swift
 //  Elixir: Daily Ritual
 //
-//  Create custom app themes
+//  Created by Antigravity on 31.12.2025.
 //
 
 import SwiftUI
 
 struct AddCustomThemeView: View {
-    @Environment(\.themeManager) private var themeManager
+    @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var themeName = ""
     @State private var bgColor1 = Color(hex: "1E1B4B")
     @State private var bgColor2 = Color(hex: "312E81")
@@ -21,7 +21,7 @@ struct AddCustomThemeView: View {
     @State private var successColor = Color(hex: "34D399")
     @State private var warningColor = Color(hex: "FBBF24")
     @State private var errorColor = Color(hex: "F87171")
-
+    
     var previewGradient: LinearGradient {
         LinearGradient(
             colors: [bgColor1, bgColor2, bgColor3],
@@ -29,21 +29,21 @@ struct AddCustomThemeView: View {
             endPoint: .bottomTrailing
         )
     }
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 themeManager.currentTheme.backgroundGradient
                     .ignoresSafeArea()
-
+                
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
                         // Preview
                         previewSection
-
+                        
                         // Theme Name
                         nameSection
-
+                        
                         // Background Colors
                         colorSection(
                             title: "Background Gradient",
@@ -53,7 +53,7 @@ struct AddCustomThemeView: View {
                                 ("Tertiary", $bgColor3)
                             ]
                         )
-
+                        
                         // Brand Colors
                         colorSection(
                             title: "Brand Colors",
@@ -63,7 +63,7 @@ struct AddCustomThemeView: View {
                                 ("Accent", $accentColor)
                             ]
                         )
-
+                        
                         // Status Colors
                         colorSection(
                             title: "Status Colors",
@@ -73,7 +73,7 @@ struct AddCustomThemeView: View {
                                 ("Error", $errorColor)
                             ]
                         )
-
+                        
                         // Save Button
                         saveButton
                     }
@@ -88,52 +88,52 @@ struct AddCustomThemeView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
                 }
             }
         }
     }
-
+    
     // MARK: - Preview Section
     private var previewSection: some View {
         VStack(spacing: Spacing.md) {
             Text("Preview")
-                .ritualFont(.ritualHeadline)
-                .foregroundColor(.white)
-
+                .font(themeManager.currentTheme.font(for: .headline))
+                .foregroundColor(themeManager.currentTheme.textPrimary)
+            
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(previewGradient)
                     .frame(height: 200)
-
+                
                 VStack(spacing: Spacing.md) {
                     HStack(spacing: Spacing.sm) {
                         Circle()
                             .fill(primaryColor)
                             .frame(width: 30, height: 30)
-
+                        
                         Circle()
                             .fill(secondaryColor)
                             .frame(width: 30, height: 30)
-
+                        
                         Circle()
                             .fill(accentColor)
                             .frame(width: 30, height: 30)
                     }
-
+                    
                     Text("Theme Preview")
-                        .ritualFont(.ritualHeadline)
+                        .font(themeManager.currentTheme.font(for: .headline))
                         .foregroundColor(.white)
-
+                    
                     HStack(spacing: Spacing.sm) {
                         Circle()
                             .fill(successColor)
                             .frame(width: 20, height: 20)
-
+                        
                         Circle()
                             .fill(warningColor)
                             .frame(width: 20, height: 20)
-
+                        
                         Circle()
                             .fill(errorColor)
                             .frame(width: 20, height: 20)
@@ -146,36 +146,36 @@ struct AddCustomThemeView: View {
             )
         }
     }
-
+    
     // MARK: - Name Section
     private var nameSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("Theme Name")
-                .ritualFont(.ritualHeadline)
-                .foregroundColor(.white)
-
+                .font(themeManager.currentTheme.font(for: .headline))
+                .foregroundColor(themeManager.currentTheme.textPrimary)
+            
             TextField("e.g., Sunset Vibes", text: $themeName)
                 .textFieldStyle(ElixirTextFieldStyle())
         }
     }
-
+    
     // MARK: - Color Section
     @ViewBuilder
     private func colorSection(title: String, colors: [(String, Binding<Color>)]) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(title)
-                .ritualFont(.ritualHeadline)
-                .foregroundColor(.white)
-
+                .font(themeManager.currentTheme.font(for: .headline))
+                .foregroundColor(themeManager.currentTheme.textPrimary)
+            
             VStack(spacing: Spacing.sm) {
                 ForEach(colors, id: \.0) { label, colorBinding in
                     HStack {
                         Text(label)
-                            .ritualFont(.ritualCallout)
-                            .foregroundColor(.white.opacity(0.7))
-
+                            .font(themeManager.currentTheme.font(for: .callout))
+                            .foregroundColor(themeManager.currentTheme.textSecondary)
+                        
                         Spacer()
-
+                        
                         ColorPicker("", selection: colorBinding, supportsOpacity: false)
                             .labelsHidden()
                             .frame(width: 44, height: 44)
@@ -188,10 +188,14 @@ struct AddCustomThemeView: View {
                 }
             }
             .padding(Spacing.md)
-            .glassCard()
+            .background(
+                RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
+                    .fill(.ultraThinMaterial)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
         }
     }
-
+    
     // MARK: - Save Button
     private var saveButton: some View {
         Button(action: saveTheme) {
@@ -199,7 +203,7 @@ struct AddCustomThemeView: View {
                 Image(systemName: "checkmark.circle.fill")
                 Text("Save Theme")
             }
-            .ritualFont(.ritualHeadline)
+            .font(themeManager.currentTheme.font(for: .headline))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, Spacing.md)
@@ -216,24 +220,25 @@ struct AddCustomThemeView: View {
         .disabled(themeName.isEmpty)
         .opacity(themeName.isEmpty ? 0.5 : 1.0)
     }
-
+    
     // MARK: - Save Logic
     private func saveTheme() {
-        let theme = AppTheme(
+        let theme = CustomTheme(
             id: UUID().uuidString,
-            name: themeName,
-            isCustom: true,
-            bgColor1: bgColor1.toHex(),
-            bgColor2: bgColor2.toHex(),
-            bgColor3: bgColor3.toHex(),
-            primaryColor: primaryColor.toHex(),
-            secondaryColor: secondaryColor.toHex(),
-            accentColor: accentColor.toHex(),
-            successColor: successColor.toHex(),
-            warningColor: warningColor.toHex(),
-            errorColor: errorColor.toHex()
+            displayName: themeName,
+            primaryColorHex: primaryColor.toHex(),
+            secondaryColorHex: secondaryColor.toHex(),
+            accentColorHex: accentColor.toHex(),
+            backgroundColorHex: bgColor1.toHex(),
+            surfaceColorHex: bgColor2.toHex(),
+            successColorHex: successColor.toHex(),
+            warningColorHex: warningColor.toHex(),
+            errorColorHex: errorColor.toHex(),
+            bgGradientColor1Hex: bgColor1.toHex(),
+            bgGradientColor2Hex: bgColor2.toHex(),
+            bgGradientColor3Hex: bgColor3.toHex()
         )
-
+        
         themeManager.addCustomTheme(theme)
         dismiss()
     }
@@ -245,7 +250,8 @@ extension Color {
         let components = UIColor(self).cgColor.components ?? [0, 0, 0, 1]
         let r = Int(components[0] * 255.0)
         let g = Int(components[1] * 255.0)
-        let b = Int(components[2] * 255.0)
+        // Handle monochrome (only 2 components)
+        let b = components.count > 2 ? Int(components[2] * 255.0) : Int(components[0] * 255.0)
         return String(format: "%02X%02X%02X", r, g, b)
     }
 }

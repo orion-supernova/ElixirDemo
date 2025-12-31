@@ -2,7 +2,7 @@
 //  ProgressOrb.swift
 //  Elixir: Daily Ritual
 //
-//  Central progress visualization component
+//  Created by Murat Can Koc on 31.12.2025.
 //
 
 import SwiftUI
@@ -12,9 +12,10 @@ struct ProgressOrb: View {
     let totalDoses: Int
     let takenDoses: Int
     let size: CGFloat
-
+    
+    @Environment(ThemeManager.self) private var themeManager
     @State private var animatedProgress: Double = 0
-
+    
     init(
         progress: Double,
         totalDoses: Int,
@@ -26,7 +27,7 @@ struct ProgressOrb: View {
         self.takenDoses = takenDoses
         self.size = size
     }
-
+    
     var body: some View {
         ZStack {
             // Background Circle
@@ -36,12 +37,12 @@ struct ProgressOrb: View {
                     lineWidth: 16
                 )
                 .frame(width: size, height: size)
-
+            
             // Animated Progress Ring
             Circle()
                 .trim(from: 0, to: animatedProgress)
                 .stroke(
-                    Color.elixirGradient,
+                    themeManager.currentTheme.primaryGradient,
                     style: StrokeStyle(
                         lineWidth: 16,
                         lineCap: .round
@@ -50,51 +51,39 @@ struct ProgressOrb: View {
                 .frame(width: size, height: size)
                 .rotationEffect(.degrees(-90))
                 .shadow(
-                    color: Color.potionPurple.opacity(0.6),
+                    color: themeManager.currentTheme.primaryColor.opacity(0.6),
                     radius: 12,
                     x: 0,
                     y: 6
                 )
-
+            
             // Inner Content
             VStack(spacing: Spacing.sm) {
                 // Completion Icon
                 if progress >= 1.0 {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(Color.healingGreen)
+                        .foregroundStyle(themeManager.currentTheme.successColor)
                         .symbolEffect(.bounce, value: progress)
                 } else {
                     Image(systemName: "sparkles")
                         .font(.system(size: 32))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color.potionPurple, Color.manaBlue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .foregroundStyle(themeManager.currentTheme.primaryGradient)
                 }
-
+                
                 // Progress Percentage
                 Text("\(Int(progress * 100))%")
-                    .ritualFont(.ritualLargeTitle)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.potionPurple, Color.manaBlue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-
+                    .font(themeManager.currentTheme.font(for: .largeTitle))
+                    .foregroundStyle(themeManager.currentTheme.primaryGradient)
+                
                 // Dose Count
                 Text("\(takenDoses)/\(totalDoses)")
-                    .ritualFont(.ritualCallout)
-                    .foregroundColor(.secondary)
-
+                    .font(themeManager.currentTheme.font(for: .callout))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                
                 Text("Elixirs")
-                    .ritualFont(.ritualCaption)
-                    .foregroundColor(.secondary.opacity(0.7))
+                    .font(themeManager.currentTheme.font(for: .caption))
+                    .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.7))
             }
         }
         .onAppear {
@@ -103,49 +92,9 @@ struct ProgressOrb: View {
             }
         }
         .onChange(of: progress) { oldValue, newValue in
-            withAnimation(.ritualSpring) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                 animatedProgress = newValue
             }
         }
     }
-}
-
-// MARK: - Preview
-#Preview("Partial Progress") {
-    ZStack {
-        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
-
-        ProgressOrb(
-            progress: 0.6,
-            totalDoses: 5,
-            takenDoses: 3
-        )
-    }
-    .environment(ThemeManager.shared)
-}
-
-#Preview("Complete Progress") {
-    ZStack {
-        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
-
-        ProgressOrb(
-            progress: 1.0,
-            totalDoses: 4,
-            takenDoses: 4
-        )
-    }
-    .environment(ThemeManager.shared)
-}
-
-#Preview("Zero Progress") {
-    ZStack {
-        ThemeManager.shared.currentTheme.backgroundGradient.ignoresSafeArea()
-
-        ProgressOrb(
-            progress: 0.0,
-            totalDoses: 3,
-            takenDoses: 0
-        )
-    }
-    .environment(ThemeManager.shared)
 }

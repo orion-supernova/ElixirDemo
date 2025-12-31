@@ -2,22 +2,22 @@
 //  CircularMenu.swift
 //  Elixir: Daily Ritual
 //
-//  Circular expanding menu for navigation
+//  Created by Murat Can Koc on 31.12.2025.
 //
 
 import SwiftUI
 
 struct CircularMenu: View {
-    @Environment(\.themeManager) private var themeManager
+    @Environment(ThemeManager.self) private var themeManager
     @Binding var selectedTab: AppTab
     @State private var isExpanded = false
-
+    
     let menuItems: [MenuItem] = [
         MenuItem(tab: .dashboard, icon: "house.fill", label: "Dashboard"),
         MenuItem(tab: .add, icon: "plus.circle.fill", label: "Add"),
         MenuItem(tab: .settings, icon: "gearshape.fill", label: "Settings")
     ]
-
+    
     var body: some View {
         ZStack {
             // Menu Items
@@ -28,7 +28,7 @@ struct CircularMenu: View {
                         isSelected: selectedTab == item.tab,
                         angle: angleForIndex(index),
                         onTap: {
-                            withAnimation(.ritualSpring) {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                                 selectedTab = item.tab
                                 isExpanded = false
                             }
@@ -37,11 +37,11 @@ struct CircularMenu: View {
                     .transition(.scale.combined(with: .opacity))
                 }
             }
-
+            
             // Main Button
             Button(action: {
                 hapticFeedback()
-                withAnimation(.ritualBounce) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
                     isExpanded.toggle()
                 }
             }) {
@@ -50,12 +50,12 @@ struct CircularMenu: View {
                         .fill(themeManager.currentTheme.primaryGradient)
                         .frame(width: 64, height: 64)
                         .shadow(
-                            color: themeManager.currentTheme.primary.opacity(0.6),
+                            color: themeManager.currentTheme.primaryColor.opacity(0.6),
                             radius: 20,
                             x: 0,
                             y: 10
                         )
-
+                    
                     Image(systemName: isExpanded ? "xmark" : "sparkles")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
@@ -65,7 +65,7 @@ struct CircularMenu: View {
             .scaleEffect(isExpanded ? 1.1 : 1.0)
         }
     }
-
+    
     // MARK: - Angle Calculation
     private func angleForIndex(_ index: Int) -> Double {
         // Position items on the RIGHT side of the button
@@ -74,15 +74,15 @@ struct CircularMenu: View {
         let startAngle = -45.0  // Top-right
         let endAngle = 45.0     // Bottom-right
         let angleRange = endAngle - startAngle
-
+        
         if totalItems == 1 {
             return 0.0 // Single item goes straight right
         }
-
+        
         let step = angleRange / (totalItems - 1)
         return startAngle + (step * Double(index))
     }
-
+    
     private func hapticFeedback() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -91,14 +91,14 @@ struct CircularMenu: View {
 
 // MARK: - Menu Button
 struct MenuButton: View {
-    @Environment(\.themeManager) private var themeManager
+    @Environment(ThemeManager.self) private var themeManager
     let item: MenuItem
     let isSelected: Bool
     let angle: Double
     let onTap: () -> Void
-
+    
     private let radius: CGFloat = 100
-
+    
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 4) {
@@ -113,23 +113,23 @@ struct MenuButton: View {
                                 )
                         )
                         .frame(width: 56, height: 56)
-
+                    
                     Image(systemName: item.icon)
                         .font(.system(size: 24))
                         .foregroundColor(.white)
                 }
                 .shadow(
                     color: isSelected ?
-                        themeManager.currentTheme.primary.opacity(0.5) :
+                    themeManager.currentTheme.primaryColor.opacity(0.5) :
                         Color.black.opacity(0.2),
                     radius: 10,
                     x: 0,
                     y: 5
                 )
-
+                
                 Text(item.label)
-                    .ritualFont(.ritualCaption)
-                    .foregroundColor(.white)
+                    .font(themeManager.currentTheme.font(for: .caption))
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
             }
         }
         .offset(x: cos(angle * .pi / 180) * radius,
@@ -156,7 +156,7 @@ enum AppTab: String, CaseIterable {
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-
+        
         CircularMenu(selectedTab: .constant(.dashboard))
             .environment(ThemeManager.shared)
     }

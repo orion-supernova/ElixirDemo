@@ -204,12 +204,4 @@ enum CompletionStatus {
     case complete
     case partial
     case none
-
-    var color: Color {
-        switch self {
-        case .complete: return .healingGreen
-        case .partial: return .mysticGold
-        case .none: return .clear
-        }
-    }
 }
