@@ -15,6 +15,8 @@ struct DashboardView: View {
     @State private var doseLogToDelete: DoseLog?
     @State private var showDeleteConfirmation = false
     @State private var showingWaterTracking = false
+    @State private var showingWaterHistory = false
+    @State private var showingResetConfirmation = false
     
     @Query private var waterEntries: [WaterEntry]
     @Query private var waterSettings: [WaterSettings]
@@ -34,23 +36,27 @@ struct DashboardView: View {
                             // Header Section
                             headerSection(viewModel: viewModel)
 
-                            if mode == .both || mode == .waterOnly {
-                                // Water Stats
-                                waterStatsSection
-                            }
+                            if mode == .waterOnly {
+                                WaterTrackingContent(showHistory: $showingWaterHistory, showReset: $showingResetConfirmation)
+                            } else {
+                                if mode == .both {
+                                    // Water Stats
+                                    waterStatsSection
+                                }
 
-                            if mode == .both || mode == .medicationOnly {
-                                // Medication Progress
-                                todayProgressSection(viewModel: viewModel)
+                                if mode == .both || mode == .medicationOnly {
+                                    // Medication Progress
+                                    todayProgressSection(viewModel: viewModel)
 
-                                // Stats Summary
-                                statsSummary(viewModel: viewModel)
+                                    // Stats Summary
+                                    statsSummary(viewModel: viewModel)
 
-                                // Weekly Overview
-                                weeklyOverviewSection()
+                                    // Weekly Overview
+                                    weeklyOverviewSection()
 
-                                // Dose List
-                                doseListSection(viewModel: viewModel)
+                                    // Dose List
+                                    doseListSection(viewModel: viewModel)
+                                }
                             }
                         }
                         .padding(.horizontal, Spacing.md)
@@ -99,36 +105,56 @@ struct DashboardView: View {
             
             Spacer()
             
-            // Streak Badge (Water Streak)
-            Button(action: {
-                showingWaterTracking = true
-            }) {
-                VStack(spacing: 2) {
-                    Image(systemName: "water.waves")
-                        .font(.system(size: 24))
-                        .foregroundColor(themeManager.currentTheme.primaryColor)
+            if (waterSettings.first?.activeDashboardMode ?? .both) != .waterOnly {
+                // Streak Badge (Water Streak)
+                Button(action: {
+                    showingWaterTracking = true
+                }) {
+                    VStack(spacing: 2) {
+                        Image(systemName: "water.waves")
+                            .font(.system(size: 24))
+                            .foregroundColor(themeManager.currentTheme.primaryColor)
 
-                    Text("\(calculateWaterStreak())")
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                        Text("\(calculateWaterStreak())")
+                            .font(themeManager.currentTheme.font(for: .headline))
+                            .foregroundColor(themeManager.currentTheme.textPrimary)
 
-                    Text("Streak")
-                        .font(themeManager.currentTheme.font(for: .caption2))
-                        .foregroundColor(themeManager.currentTheme.textSecondary)
+                        Text("Streak")
+                            .font(themeManager.currentTheme.font(for: .caption2))
+                            .foregroundColor(themeManager.currentTheme.textSecondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(themeManager.currentTheme.surfaceColor)
+                            .stroke(themeManager.currentTheme.primaryColor.opacity(0.2), lineWidth: 1)
+                    )
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(themeManager.currentTheme.surfaceColor)
-                        .stroke(themeManager.currentTheme.primaryColor.opacity(0.2), lineWidth: 1)
-                )
             }
         }
         .fullScreenCover(isPresented: $showingWaterTracking) {
             NavigationStack {
                 WaterTrackingView()
             }
+        }
+        .fullScreenCover(isPresented: $showingWaterHistory) {
+            NavigationStack {
+                WaterHistoryView()
+            }
+        }
+        .alert("Reset Today's Water?", isPresented: $showingResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Reset", role: .destructive) { 
+                let calendar = Calendar.current
+                let todayEntries = waterEntries.filter { calendar.isDateInToday($0.date) }
+                for entry in todayEntries {
+                    modelContext.delete(entry)
+                }
+                try? modelContext.save()
+            }
+        } message: {
+            Text("This will clear all water entries for today. Are you sure?")
         }
     }
     

@@ -9,18 +9,54 @@ import SwiftUI
 import SwiftData
 
 struct WaterTrackingView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(ThemeManager.self) private var themeManager
+    
+    @State private var showingHistory = false
+    @State private var showingResetConfirmation = false
+
+    var body: some View {
+        ZStack {
+            themeManager.currentTheme.backgroundGradient
+                .ignoresSafeArea()
+            
+            WaterTrackingContent(showHistory: $showingHistory, showReset: $showingResetConfirmation)
+        }
+        .navigationTitle("Hydration")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") { dismiss() }
+                    .foregroundColor(themeManager.currentTheme.primaryColor)
+            }
+        }
+        .fullScreenCover(isPresented: $showingHistory) {
+            NavigationStack {
+                WaterHistoryView()
+            }
+        }
+    }
+}
+
+struct WaterTrackingContent: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ThemeManager.self) private var themeManager
-    @Environment(\.dismiss) private var dismiss
     
     @Query(sort: \WaterEntry.date, order: .forward) private var entries: [WaterEntry]
     @Query private var waterSettings: [WaterSettings]
     
+    @Binding var showHistory: Bool
+    @Binding var showReset: Bool
+    
     @State private var waveOffset = Angle(degrees: 0)
     @State private var showingAddConfirmation = false
     @State private var lastAddedAmount: Double = 0
-    @State private var showingResetConfirmation = false
-    @State private var showingHistory = false
+    
+    // Initializers to allow optional bindings if used directly in Dashboard
+    init(showHistory: Binding<Bool> = .constant(false), showReset: Binding<Bool> = .constant(false)) {
+        self._showHistory = showHistory
+        self._showReset = showReset
+    }
     
     private var totalIntakeToday: Double {
         let calendar = Calendar.current
@@ -61,10 +97,6 @@ struct WaterTrackingView: View {
     
     var body: some View {
         ZStack {
-            // Background
-            themeManager.currentTheme.backgroundGradient
-                .ignoresSafeArea()
-            
             VStack(spacing: Spacing.xl) {
                 // Liquid Progress
                 liquidContainer
@@ -94,9 +126,37 @@ struct WaterTrackingView: View {
                 
                 // Controls
                 VStack(spacing: Spacing.lg) {
-                    Text("Hydration Ritual")
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                    HStack {
+                        Text("Hydration Ritual")
+                            .font(themeManager.currentTheme.font(for: .headline))
+                            .foregroundColor(themeManager.currentTheme.textPrimary)
+                        
+                        Spacer()
+                        
+                        HStack(spacing: Spacing.md) {
+                            Button {
+                                showHistory = true
+                            } label: {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                                    .padding(8)
+                                    .background(themeManager.currentTheme.primaryColor.opacity(0.1))
+                                    .clipShape(Circle())
+                            }
+                            
+                            Button {
+                                showReset = true
+                            } label: {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(themeManager.currentTheme.errorColor)
+                                    .padding(8)
+                                    .background(themeManager.currentTheme.errorColor.opacity(0.1))
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
                     
                     HStack(spacing: Spacing.md) {
                         AddWaterButton(amount: 0.05, label: "Sip", icon: "mouth.fill") { addWater(0.05) }
@@ -154,38 +214,7 @@ struct WaterTrackingView: View {
                 .zIndex(10)
             }
         }
-        .navigationTitle("Hydration")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") { dismiss() }
-                    .foregroundColor(themeManager.currentTheme.primaryColor)
-            }
-            
-            ToolbarItem(placement: .topBarLeading) {
-                HStack {
-                    Button {
-                        showingHistory = true
-                    } label: {
-                        Image(systemName: "calendar")
-                            .foregroundColor(themeManager.currentTheme.primaryColor)
-                    }
-                    
-                    Button(role: .destructive) {
-                        showingResetConfirmation = true
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundColor(themeManager.currentTheme.errorColor)
-                    }
-                }
-            }
-        }
-        .fullScreenCover(isPresented: $showingHistory) {
-            NavigationStack {
-                WaterHistoryView()
-            }
-        }
-        .alert("Reset Today's Water?", isPresented: $showingResetConfirmation) {
+        .alert("Reset Today's Water?", isPresented: $showReset) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) { resetTodayWater() }
         } message: {
@@ -282,7 +311,6 @@ struct WaterTrackingView: View {
     }
 }
 
-// WaveShape and AddWaterButton remain the same or slightly adjusted for width
 struct WaveShape: Shape {
     var offset: Angle
     var percent: Double
