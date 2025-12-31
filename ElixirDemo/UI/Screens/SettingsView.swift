@@ -21,6 +21,9 @@ struct SettingsView: View {
     @Query private var waterSettings: [WaterSettings]
     @Query private var waterEntries: [WaterEntry]
     
+    // Explanation State
+    @State private var selectedStatForExplanation: StatDetail?
+    
     var body: some View {
         ZStack {
             // Background
@@ -134,25 +137,39 @@ struct SettingsView: View {
             
             // Custom Level Progress Bar
             VStack(spacing: 8) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.white.opacity(0.1))
+                Button(action: {
+                    selectedStatForExplanation = StatDetail(
+                        title: stats.currentTitle,
+                        value: "Level \(stats.currentLevel)",
+                        description: "Earn XP by completing your daily rituals. Leveling up unlocks prestigious alchemical titles and marks your mastery over your health.\n\nNext title at Level \(stats.currentLevel + 5)!",
+                        icon: "bolt.fill",
+                        color: themeManager.currentTheme.primaryColor
+                    )
+                }) {
+                    VStack(spacing: 8) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.white.opacity(0.1))
+                                
+                                Capsule()
+                                    .fill(themeManager.currentTheme.primaryGradient)
+                                    .frame(width: geo.size.width * stats.progressToNextLevel)
+                            }
+                        }
+                        .frame(height: 10)
                         
-                        Capsule()
-                            .fill(themeManager.currentTheme.primaryGradient)
-                            .frame(width: geo.size.width * stats.progressToNextLevel)
+                        HStack {
+                            Text("\(stats.totalXP) XP")
+                            Spacer()
+                            Text("Goal: \(stats.xpToNextLevel) XP")
+                            Image(systemName: "info.circle").font(.system(size: 8))
+                        }
+                        .font(themeManager.currentTheme.font(for: .caption))
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                     }
                 }
-                .frame(height: 10)
-                
-                HStack {
-                    Text("\(stats.totalXP) XP")
-                    Spacer()
-                    Text("Goal: \(stats.xpToNextLevel) XP")
-                }
-                .font(themeManager.currentTheme.font(for: .caption))
-                .foregroundColor(themeManager.currentTheme.textSecondary)
+                .buttonStyle(.plain)
             }
             .padding(.vertical, Spacing.xs)
             
@@ -162,31 +179,71 @@ struct SettingsView: View {
                 // 2x2 Grid for Both Streaks + Stats
                 VStack(spacing: Spacing.md) {
                     HStack(spacing: Spacing.md) {
+                        let medStreak = gamification.calculateMedicationStreak()
                         StatBadge(
-                            value: "\(gamification.calculateMedicationStreak())",
+                            value: "\(medStreak)",
                             label: "Med Streak",
                             icon: "pill.fill",
-                            color: themeManager.currentTheme.errorColor
+                            color: themeManager.currentTheme.errorColor,
+                            action: {
+                                selectedStatForExplanation = StatDetail(
+                                    title: "Medication Streak",
+                                    value: "\(medStreak)",
+                                    description: "Your consistency with remedies. Increases every day you take 100% of your scheduled doses.",
+                                    icon: "pill.fill",
+                                    color: themeManager.currentTheme.errorColor
+                                )
+                            }
                         )
+                        let waterStreak = gamification.calculateWaterGoalStreak()
                         StatBadge(
-                            value: "\(gamification.calculateWaterGoalStreak())",
+                            value: "\(waterStreak)",
                             label: "Water Streak",
                             icon: "drop.fill",
-                            color: themeManager.currentTheme.primaryColor
+                            color: themeManager.currentTheme.primaryColor,
+                            action: {
+                                selectedStatForExplanation = StatDetail(
+                                    title: "Water Streak",
+                                    value: "\(waterStreak)",
+                                    description: "Your hydration consistency. Increases every day you reach your full daily water goal.",
+                                    icon: "drop.fill",
+                                    color: themeManager.currentTheme.primaryColor
+                                )
+                            }
                         )
                     }
                     HStack(spacing: Spacing.md) {
+                        let perfectDays = gamification.calculatePerfectDays()
                         StatBadge(
-                            value: "\(gamification.calculatePerfectDays())",
+                            value: "\(perfectDays)",
                             label: "Perfect Days",
                             icon: "star.fill",
-                            color: themeManager.currentTheme.warningColor
+                            color: themeManager.currentTheme.warningColor,
+                            action: {
+                                selectedStatForExplanation = StatDetail(
+                                    title: "Perfect Days",
+                                    value: "\(perfectDays)",
+                                    description: "The ultimate milestone. Achieved on days when you complete every single medication dose AND hit your water goal.",
+                                    icon: "star.fill",
+                                    color: themeManager.currentTheme.warningColor
+                                )
+                            }
                         )
+                        let consistencyValue = Int(gamification.calculateHolisticConsistency() * 100)
                         StatBadge(
-                            value: "\(Int(gamification.calculateHolisticConsistency() * 100))%",
+                            value: "\(consistencyValue)%",
                             label: "Consistency",
                             icon: themeManager.currentTheme.symbols.check,
-                            color: themeManager.currentTheme.successColor
+                            color: themeManager.currentTheme.successColor,
+                            action: {
+                                selectedStatForExplanation = StatDetail(
+                                    title: "Holistic Consistency",
+                                    value: "\(consistencyValue)%",
+                                    description: "The balanced average of your adherence to both medications and hydration. It represents your overall alignment with your health rituals.",
+                                    icon: themeManager.currentTheme.symbols.check,
+                                    color: themeManager.currentTheme.successColor
+                                )
+                            }
                         )
                     }
                 }
@@ -194,28 +251,64 @@ struct SettingsView: View {
                 // 1x3 Row for Single Focus
                 HStack(spacing: Spacing.md) {
                     let streakValue = mode == .medicationOnly ? gamification.calculateMedicationStreak() : gamification.calculateWaterGoalStreak()
-                    let icon = mode == .medicationOnly ? "pill.fill" : "drop.fill"
-                    let color = mode == .medicationOnly ? themeManager.currentTheme.errorColor : themeManager.currentTheme.primaryColor
+                    let streakLabel = mode == .medicationOnly ? "Med" : "Water"
                     
                     StatBadge(
                         value: "\(streakValue)",
-                        label: "Streak",
-                        icon: icon,
-                        color: color
+                        label: "\(streakLabel) Streak",
+                        icon: themeManager.currentTheme.symbols.streak,
+                        color: themeManager.currentTheme.errorColor,
+                        action: {
+                            let desc = mode == .medicationOnly 
+                                ? "Your medication consistency. Increases every day you successfully take 100% of your scheduled doses."
+                                : "Your hydration consistency. Increases every day you meet 100% of your water goal."
+                            selectedStatForExplanation = StatDetail(
+                                title: "\(streakLabel) Streak",
+                                value: "\(streakValue)",
+                                description: desc,
+                                icon: themeManager.currentTheme.symbols.streak,
+                                color: themeManager.currentTheme.errorColor
+                            )
+                        }
                     )
                     
                     StatBadge(
                         value: "\(gamification.calculatePerfectDays())",
                         label: "Perfect Days",
                         icon: "star.fill",
-                        color: themeManager.currentTheme.warningColor
+                        color: themeManager.currentTheme.warningColor,
+                        action: {
+                            let desc = mode == .medicationOnly
+                                ? "Achieved on days when you take every single scheduled medication dose."
+                                : "Achieved on days when you reach your full hydration goal."
+                            selectedStatForExplanation = StatDetail(
+                                title: "Perfect Days",
+                                value: "\(gamification.calculatePerfectDays())",
+                                description: desc,
+                                icon: "star.fill",
+                                color: themeManager.currentTheme.warningColor
+                            )
+                        }
                     )
                     
+                    let consistency = Int(gamification.calculateHolisticConsistency() * 100)
                     StatBadge(
-                        value: "\(Int(gamification.calculateHolisticConsistency() * 100))%",
+                        value: "\(consistency)%",
                         label: "Consistency",
                         icon: themeManager.currentTheme.symbols.check,
-                        color: themeManager.currentTheme.successColor
+                        color: themeManager.currentTheme.successColor,
+                        action: {
+                            let desc = mode == .medicationOnly
+                                ? "The percentage of doses taken versus those missed or skipped. A measure of your faithfulness to your remedies."
+                                : "The percentage of active days you've successfully reached your water goal. It reflects your dedication to hydration."
+                            selectedStatForExplanation = StatDetail(
+                                title: "Consistency",
+                                value: "\(consistency)%",
+                                description: desc,
+                                icon: themeManager.currentTheme.symbols.check,
+                                color: themeManager.currentTheme.successColor
+                            )
+                        }
                     )
                 }
             }
@@ -226,6 +319,9 @@ struct SettingsView: View {
                 .fill(themeManager.currentTheme.surfaceColor)
                 .stroke(themeManager.currentTheme.primaryColor.opacity(0.1), lineWidth: 1)
         )
+        .sheet(item: $selectedStatForExplanation) { detail in
+            StatExplanationSheet(detail: detail)
+        }
     }
     
     // MARK: - Hydration Section
@@ -682,27 +778,117 @@ struct SettingsRow: View {
 struct StatBadge: View {
     let value: String
     let label: String
-    let icon: String // Can be SF Symbol or Emoji
+    let icon: String
     let color: Color
+    var action: (() -> Void)? = nil
     
     @Environment(ThemeManager.self) private var themeManager
     
     var body: some View {
-        VStack(spacing: Spacing.xs) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(themeManager.currentTheme.font(for: .title2))
-                .foregroundColor(themeManager.currentTheme.textPrimary)
-            
-            Text(label)
-                .font(themeManager.currentTheme.font(for: .caption))
-                .foregroundColor(themeManager.currentTheme.textSecondary)
+        Button(action: { action?() }) {
+            VStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(color)
+                
+                Text(value)
+                    .font(themeManager.currentTheme.font(for: .title2))
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
+                
+                Text(label)
+                    .font(themeManager.currentTheme.font(for: .caption))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                
+                if action != nil {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 10))
+                        .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.5))
+                        .padding(.top, 2)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.05))
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.md)
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Stat Detail Model
+struct StatDetail: Identifiable {
+    let id = UUID()
+    let title: String
+    let value: String
+    let description: String
+    let icon: String
+    let color: Color
+}
+
+// MARK: - Stat Explanation Sheet
+struct StatExplanationSheet: View {
+    let detail: StatDetail
+    @Environment(\.dismiss) private var dismiss
+    @Environment(ThemeManager.self) private var themeManager
+    
+    var body: some View {
+        ZStack {
+            themeManager.currentTheme.backgroundGradient.ignoresSafeArea()
+            
+            VStack(spacing: Spacing.lg) {
+                // Handle
+                Capsule()
+                    .fill(Color.white.opacity(0.1))
+                    .frame(width: 40, height: 4)
+                    .padding(.top, Spacing.sm)
+                
+                // Icon & Header
+                VStack(spacing: Spacing.md) {
+                    ZStack {
+                        Circle()
+                            .fill(detail.color.opacity(0.1))
+                            .frame(width: 80, height: 80)
+                        
+                        Image(systemName: detail.icon)
+                            .font(.system(size: 40))
+                            .foregroundColor(detail.color)
+                    }
+                    
+                    Text(detail.title)
+                        .font(themeManager.currentTheme.font(for: .title2))
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                    
+                    Text(detail.value)
+                        .font(themeManager.currentTheme.font(for: .largeTitle))
+                        .fontWeight(.bold)
+                        .foregroundColor(detail.color)
+                }
+                
+                Text(detail.description)
+                    .font(themeManager.currentTheme.font(for: .body))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Spacing.xl)
+                
+                Spacer()
+                
+                Button(action: { dismiss() }) {
+                    Text("Understood")
+                        .font(themeManager.currentTheme.font(for: .headline))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(themeManager.currentTheme.primaryGradient)
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, Spacing.xl)
+            }
+        }
+        .presentationDetents([.height(450)])
+        .presentationDragIndicator(.hidden)
     }
 }
 
