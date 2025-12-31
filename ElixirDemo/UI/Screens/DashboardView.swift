@@ -212,6 +212,8 @@ struct DashboardView: View {
     
     private func calculateWaterStreak() -> Int {
         let calendar = Calendar.current
+        let goal = waterSettings.first?.dailyGoalLiters ?? 2.0
+        
         let groupedEntries = Dictionary(grouping: waterEntries) { entry in
             calendar.startOfDay(for: entry.date)
         }
@@ -219,12 +221,17 @@ struct DashboardView: View {
         var streak = 0
         var checkDate = calendar.startOfDay(for: Date())
         
-        // If no intake today, check from yesterday for the streak
-        if groupedEntries[checkDate] == nil {
+        // Calculate daily totals for each date
+        let dailyTotals = groupedEntries.mapValues { entries in
+            entries.reduce(0.0) { $0 + $1.amountLiters }
+        }
+        
+        // Check if streak continues from today or yesterday
+        if (dailyTotals[checkDate] ?? 0) < goal {
             checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
         }
         
-        while groupedEntries[checkDate] != nil {
+        while (dailyTotals[checkDate] ?? 0) >= goal {
             streak += 1
             checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
         }

@@ -276,8 +276,14 @@ struct WaterTrackingContent: View {
     
     private func addWater(_ amount: Double) {
         let entry = WaterEntry(amountLiters: amount)
+        let totalBefore = totalIntakeToday
+        
         modelContext.insert(entry)
         lastAddedAmount = amount
+        
+        // Gamification: Record the ritual
+        let gamification = GamificationManager(modelContext: modelContext)
+        gamification.recordWaterRitual(amount: amount, goal: dailyGoal, totalTodayBefore: totalBefore)
         
         withAnimation {
             showingAddConfirmation = true

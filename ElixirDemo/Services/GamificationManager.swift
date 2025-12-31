@@ -15,6 +15,8 @@ final class GamificationManager {
 
     // Constants
     static let xpPerDose = 10
+    static let xpPerWaterIntake = 5
+    static let xpBonusWaterGoal = 30
     static let xpBonusStreak7 = 50
     static let xpBonusStreak30 = 200
 
@@ -68,40 +70,206 @@ final class GamificationManager {
         try? modelContext.save()
     }
 
-    // MARK: - Streak Management
-    func updateDailyStreak(for date: Date) {
+    // MARK: - Water Recording
+    func recordWaterRitual(amount: Double, goal: Double, totalTodayBefore: Double) {
+        let stats = getUserStats()
+        
+        // Base XP for logging
+        stats.addXP(Self.xpPerWaterIntake)
+        
+        // Check if this entry pushes user over the daily goal
+        let totalAfter = totalTodayBefore + amount
+        if totalTodayBefore < goal && totalAfter >= goal {
+            stats.addXP(Self.xpBonusWaterGoal)
+            
+            // Potential for a "Goal Met" achievement here in future
+        }
+        
+        try? modelContext.save()
+    }
+
+    // MARK: - Streak Calculation (Historical)
+    func calculateMedicationStreak() -> Int {
+        let calendar = Calendar.current
+        var streak = 0
+        var checkDate = calendar.startOfDay(for: Date())
+        
+        // Check if today has any doses and if they are all taken
+        // If today has doses but not all are taken, the streak hasn't ended yet (it's pending), 
+        // so we start counting from yesterday.
+        let todayLogs = getDoseLogs(for: checkDate)
+        if !todayLogs.isEmpty && !todayLogs.allSatisfy({ $0.isTaken }) {
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        while true {
+            let logs = getDoseLogs(for: checkDate)
+            if logs.isEmpty {
+                // No doses scheduled for this day? If it's in the past, we consider it a gap.
+                // UNLESS we want to skip empty days. But usually gaps break streaks.
+                break
+            }
+            
+            if logs.allSatisfy({ $0.isTaken }) {
+                streak += 1
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+            } else {
+                break
+            }
+        }
+        
+        return streak
+    }
+    
+    func calculateWaterGoalStreak() -> Int {
+        let calendar = Calendar.current
+        var streak = 0
+        var checkDate = calendar.startOfDay(for: Date())
+        
+        // Get goals and entries
+        let descriptor = FetchDescriptor<WaterSettings>()
+        let settings = (try? modelContext.fetch(descriptor).first) ?? WaterSettings()
+        let goal = settings.dailyGoalLiters
+        
+        // If today's goal isn't met, check yesterday to see if we HAVE a streak
+        if getWaterIntake(for: checkDate) < goal {
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        while true {
+            if getWaterIntake(for: checkDate) >= goal {
+                streak += 1
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+            } else {
+                break
+            }
+        }
+        
+        return streak
+    }
+
+    func calculatePerfectDays() -> Int {
+        let calendar = Calendar.current
+        let descriptor = FetchDescriptor<WaterSettings>()
+        let mode = (try? modelContext.fetch(descriptor).first)?.activeDashboardMode ?? .both
+        let waterGoal = (try? modelContext.fetch(descriptor).first)?.dailyGoalLiters ?? 2.0
+        
+        // Find the date of the very first record (either Water or DoseLog)
+        let waterDescriptor = FetchDescriptor<WaterEntry>(sortBy: [SortDescriptor(\.date, order: .forward)])
+        let doseDescriptor = FetchDescriptor<DoseLog>(sortBy: [SortDescriptor(\.scheduledTime, order: .forward)])
+        
+        let firstWater = try? modelContext.fetch(waterDescriptor).first?.date
+        let firstDose = try? modelContext.fetch(doseDescriptor).first?.scheduledTime
+        
+        guard let startDate = [firstWater, firstDose].compactMap({ $0 }).min() else { return 0 }
+        
+        var count = 0
+        var checkDate = calendar.startOfDay(for: startDate)
+        let today = calendar.startOfDay(for: Date())
+        
+        while checkDate <= today {
+            let medsDone = mode == .waterOnly || {
+                let logs = getDoseLogs(for: checkDate)
+                return !logs.isEmpty && logs.allSatisfy({ $0.isTaken })
+            }()
+            
+            let waterDone = mode == .medicationOnly || {
+                return getWaterIntake(for: checkDate) >= waterGoal
+            }()
+            
+            if medsDone && waterDone {
+                count += 1
+            }
+            
+            checkDate = calendar.date(byAdding: .day, value: 1, to: checkDate)!
+        }
+        
+        return count
+    }
+
+    func calculateHolisticConsistency() -> Double {
         let stats = getUserStats()
         let calendar = Calendar.current
-
-        // Get all dose logs for the date
-        let startOfDay = calendar.startOfDay(for: date)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
+        
+        // 1. Medication Component
+        let totalMedsScheduled = stats.totalDosesTaken + stats.totalDosesSkipped + stats.totalDosesMissed
+        let medConsistency = totalMedsScheduled > 0 ? Double(stats.totalDosesTaken) / Double(totalMedsScheduled) : 1.0
+        
+        // 2. Water Component
+        let descriptor = FetchDescriptor<WaterSettings>()
+        let waterGoal = (try? modelContext.fetch(descriptor).first)?.dailyGoalLiters ?? 2.0
+        
+        let waterDescriptor = FetchDescriptor<WaterEntry>(sortBy: [SortDescriptor(\.date, order: .forward)])
+        guard let firstWaterDate = try? modelContext.fetch(waterDescriptor).first?.date else {
+            // If no water tracking yet, consistency is just meds
+            return medConsistency
+        }
+        
+        let startDate = calendar.startOfDay(for: firstWaterDate)
+        let today = calendar.startOfDay(for: Date())
+        let totalDays = calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
+        let activeDays = totalDays + 1 // Include today
+        
+        var waterSuccessDays = 0
+        var checkDate = startDate
+        while checkDate <= today {
+            if getWaterIntake(for: checkDate) >= waterGoal {
+                waterSuccessDays += 1
+            }
+            checkDate = calendar.date(byAdding: .day, value: 1, to: checkDate)!
+        }
+        
+        let waterConsistency = Double(waterSuccessDays) / Double(activeDays)
+        
+        // 3. Holistic Average
+        // If we are in "Both" mode, average them. Otherwise use the relevant one.
+        let mode = (try? modelContext.fetch(descriptor).first)?.activeDashboardMode ?? .both
+        
+        switch mode {
+        case .medicationOnly: return medConsistency
+        case .waterOnly: return waterConsistency
+        case .both: return (medConsistency + waterConsistency) / 2.0
+        }
+    }
+    
+    private func getDoseLogs(for date: Date) -> [DoseLog] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start)!
+        
         let descriptor = FetchDescriptor<DoseLog>(
             predicate: #Predicate { log in
-                log.scheduledTime >= startOfDay && log.scheduledTime < endOfDay
+                log.scheduledTime >= start && log.scheduledTime < end
             }
         )
-
-        guard let doseLogs = try? modelContext.fetch(descriptor) else { return }
-
-        // Check if all doses for the day are taken
-        let allTaken = !doseLogs.isEmpty && doseLogs.allSatisfy { $0.isTaken }
-        let anyMissed = doseLogs.contains { $0.isMissed }
-
-        if allTaken {
-            stats.incrementStreak()
-
-            // Streak milestone bonuses
-            if stats.currentStreak == 7 {
-                stats.addXP(Self.xpBonusStreak7)
-            } else if stats.currentStreak == 30 {
-                stats.addXP(Self.xpBonusStreak30)
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+    
+    private func getWaterIntake(for date: Date) -> Double {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start)!
+        
+        let descriptor = FetchDescriptor<WaterEntry>(
+            predicate: #Predicate { entry in
+                entry.date >= start && entry.date < end
             }
-        } else if anyMissed {
-            stats.resetStreak()
-        }
+        )
+        let entries = (try? modelContext.fetch(descriptor)) ?? []
+        return entries.reduce(0.0) { $0 + $1.amountLiters }
+    }
 
+    // MARK: - Legacy / Manual Update
+    func updateDailyStreak(for date: Date) {
+        // We now rely on calculate helpers, but we keep the stat update for badges/XP
+        let stats = getUserStats()
+        let newMedStreak = calculateMedicationStreak()
+        stats.currentStreak = newMedStreak
+        
+        if newMedStreak > stats.longestStreak {
+            stats.longestStreak = newMedStreak
+        }
+        
         try? modelContext.save()
     }
 
