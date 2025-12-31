@@ -23,6 +23,7 @@ struct SettingsView: View {
     
     // Explanation State
     @State private var selectedStatForExplanation: StatDetail?
+    @State private var showingMasteryRoadmap = false
     
     var body: some View {
         ZStack {
@@ -101,15 +102,20 @@ struct SettingsView: View {
         
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(stats.currentTitle)
-                        .font(themeManager.currentTheme.font(for: .headline))
-                        .foregroundColor(themeManager.currentTheme.primaryColor)
-                    
-                    Text("Level \(stats.currentLevel)")
-                        .font(themeManager.currentTheme.font(for: .title2))
-                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                Button(action: {
+                    selectedStatForExplanation = gamification.explanationDetail(for: .level, mode: mode, theme: themeManager.currentTheme)
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(stats.currentTitle)
+                            .font(themeManager.currentTheme.font(for: .headline))
+                            .foregroundColor(themeManager.currentTheme.primaryColor)
+                        
+                        Text("Level \(stats.currentLevel)")
+                            .font(themeManager.currentTheme.font(for: .title2))
+                            .foregroundColor(themeManager.currentTheme.textPrimary)
+                    }
                 }
+                .buttonStyle(.plain)
                 
                 Spacer()
                 
@@ -138,13 +144,7 @@ struct SettingsView: View {
             // Custom Level Progress Bar
             VStack(spacing: 8) {
                 Button(action: {
-                    selectedStatForExplanation = StatDetail(
-                        title: stats.currentTitle,
-                        value: "Level \(stats.currentLevel)",
-                        description: "Earn XP by completing your daily rituals. Leveling up unlocks prestigious alchemical titles and marks your mastery over your health.\n\nNext title at Level \(stats.currentLevel + 5)!",
-                        icon: "bolt.fill",
-                        color: themeManager.currentTheme.primaryColor
-                    )
+                    selectedStatForExplanation = gamification.explanationDetail(for: .level, mode: mode, theme: themeManager.currentTheme)
                 }) {
                     VStack(spacing: 8) {
                         GeometryReader { geo in
@@ -170,6 +170,21 @@ struct SettingsView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                
+                Button(action: { showingMasteryRoadmap = true }) {
+                    HStack {
+                        Text("View Mastery Roadmap")
+                            .font(themeManager.currentTheme.font(for: .caption))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 8))
+                    }
+                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(themeManager.currentTheme.primaryColor.opacity(0.1))
+                    .cornerRadius(20)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.vertical, Spacing.xs)
             
@@ -186,13 +201,7 @@ struct SettingsView: View {
                             icon: "pill.fill",
                             color: themeManager.currentTheme.errorColor,
                             action: {
-                                selectedStatForExplanation = StatDetail(
-                                    title: "Medication Streak",
-                                    value: "\(medStreak)",
-                                    description: "Your consistency with remedies. Increases every day you take 100% of your scheduled doses.",
-                                    icon: "pill.fill",
-                                    color: themeManager.currentTheme.errorColor
-                                )
+                                selectedStatForExplanation = gamification.explanationDetail(for: .medicationStreak, mode: mode, theme: themeManager.currentTheme)
                             }
                         )
                         let waterStreak = gamification.calculateWaterGoalStreak()
@@ -202,13 +211,7 @@ struct SettingsView: View {
                             icon: "drop.fill",
                             color: themeManager.currentTheme.primaryColor,
                             action: {
-                                selectedStatForExplanation = StatDetail(
-                                    title: "Water Streak",
-                                    value: "\(waterStreak)",
-                                    description: "Your hydration consistency. Increases every day you reach your full daily water goal.",
-                                    icon: "drop.fill",
-                                    color: themeManager.currentTheme.primaryColor
-                                )
+                                selectedStatForExplanation = gamification.explanationDetail(for: .waterStreak, mode: mode, theme: themeManager.currentTheme)
                             }
                         )
                     }
@@ -220,13 +223,7 @@ struct SettingsView: View {
                             icon: "star.fill",
                             color: themeManager.currentTheme.warningColor,
                             action: {
-                                selectedStatForExplanation = StatDetail(
-                                    title: "Perfect Days",
-                                    value: "\(perfectDays)",
-                                    description: "The ultimate milestone. Achieved on days when you complete every single medication dose AND hit your water goal.",
-                                    icon: "star.fill",
-                                    color: themeManager.currentTheme.warningColor
-                                )
+                                selectedStatForExplanation = gamification.explanationDetail(for: .perfectDays, mode: mode, theme: themeManager.currentTheme)
                             }
                         )
                         let consistencyValue = Int(gamification.calculateHolisticConsistency() * 100)
@@ -236,13 +233,7 @@ struct SettingsView: View {
                             icon: themeManager.currentTheme.symbols.check,
                             color: themeManager.currentTheme.successColor,
                             action: {
-                                selectedStatForExplanation = StatDetail(
-                                    title: "Holistic Consistency",
-                                    value: "\(consistencyValue)%",
-                                    description: "The balanced average of your adherence to both medications and hydration. It represents your overall alignment with your health rituals.",
-                                    icon: themeManager.currentTheme.symbols.check,
-                                    color: themeManager.currentTheme.successColor
-                                )
+                                selectedStatForExplanation = gamification.explanationDetail(for: .consistency, mode: mode, theme: themeManager.currentTheme)
                             }
                         )
                     }
@@ -259,16 +250,8 @@ struct SettingsView: View {
                         icon: themeManager.currentTheme.symbols.streak,
                         color: themeManager.currentTheme.errorColor,
                         action: {
-                            let desc = mode == .medicationOnly 
-                                ? "Your medication consistency. Increases every day you successfully take 100% of your scheduled doses."
-                                : "Your hydration consistency. Increases every day you meet 100% of your water goal."
-                            selectedStatForExplanation = StatDetail(
-                                title: "\(streakLabel) Streak",
-                                value: "\(streakValue)",
-                                description: desc,
-                                icon: themeManager.currentTheme.symbols.streak,
-                                color: themeManager.currentTheme.errorColor
-                            )
+                            let type: StatType = mode == .medicationOnly ? .medicationStreak : .waterStreak
+                            selectedStatForExplanation = gamification.explanationDetail(for: type, mode: mode, theme: themeManager.currentTheme)
                         }
                     )
                     
@@ -278,16 +261,7 @@ struct SettingsView: View {
                         icon: "star.fill",
                         color: themeManager.currentTheme.warningColor,
                         action: {
-                            let desc = mode == .medicationOnly
-                                ? "Achieved on days when you take every single scheduled medication dose."
-                                : "Achieved on days when you reach your full hydration goal."
-                            selectedStatForExplanation = StatDetail(
-                                title: "Perfect Days",
-                                value: "\(gamification.calculatePerfectDays())",
-                                description: desc,
-                                icon: "star.fill",
-                                color: themeManager.currentTheme.warningColor
-                            )
+                            selectedStatForExplanation = gamification.explanationDetail(for: .perfectDays, mode: mode, theme: themeManager.currentTheme)
                         }
                     )
                     
@@ -298,16 +272,7 @@ struct SettingsView: View {
                         icon: themeManager.currentTheme.symbols.check,
                         color: themeManager.currentTheme.successColor,
                         action: {
-                            let desc = mode == .medicationOnly
-                                ? "The percentage of doses taken versus those missed or skipped. A measure of your faithfulness to your remedies."
-                                : "The percentage of active days you've successfully reached your water goal. It reflects your dedication to hydration."
-                            selectedStatForExplanation = StatDetail(
-                                title: "Consistency",
-                                value: "\(consistency)%",
-                                description: desc,
-                                icon: themeManager.currentTheme.symbols.check,
-                                color: themeManager.currentTheme.successColor
-                            )
+                            selectedStatForExplanation = gamification.explanationDetail(for: .consistency, mode: mode, theme: themeManager.currentTheme)
                         }
                     )
                 }
@@ -321,6 +286,9 @@ struct SettingsView: View {
         )
         .sheet(item: $selectedStatForExplanation) { detail in
             StatExplanationSheet(detail: detail)
+        }
+        .sheet(isPresented: $showingMasteryRoadmap) {
+            MasteryRoadmapView(stats: stats)
         }
     }
     
@@ -817,15 +785,6 @@ struct StatBadge: View {
     }
 }
 
-// MARK: - Stat Detail Model
-struct StatDetail: Identifiable {
-    let id = UUID()
-    let title: String
-    let value: String
-    let description: String
-    let icon: String
-    let color: Color
-}
 
 // MARK: - Stat Explanation Sheet
 struct StatExplanationSheet: View {
@@ -870,6 +829,8 @@ struct StatExplanationSheet: View {
                     .font(themeManager.currentTheme.font(for: .body))
                     .foregroundColor(themeManager.currentTheme.textSecondary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, Spacing.xl)
                 
                 Spacer()

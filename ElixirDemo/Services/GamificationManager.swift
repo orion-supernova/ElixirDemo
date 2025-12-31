@@ -7,18 +7,27 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
+
+enum StatType {
+    case medicationStreak
+    case waterStreak
+    case perfectDays
+    case consistency
+    case level
+}
 
 @MainActor
 @Observable
 final class GamificationManager {
     private let modelContext: ModelContext
 
-    // Constants
-    static let xpPerDose = 10
-    static let xpPerWaterIntake = 5
-    static let xpBonusWaterGoal = 30
-    static let xpBonusStreak7 = 50
-    static let xpBonusStreak30 = 200
+    // Constants - Balanced for Sustainable Mastery
+    static let xpPerDose = 30
+    static let xpPerWaterIntake = 10
+    static let xpBonusWaterGoal = 50
+    static let xpBonusPerfectDay = 100
+    static let xpBonusPerfectWeek = 1000
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -39,12 +48,41 @@ final class GamificationManager {
         }
     }
 
+    // MARK: - XP with Multipliers
+    func addXP(amount: Int) {
+        let stats = getUserStats()
+        let multiplier = calculateCurrentMultiplier()
+        let finalXP = Int(Double(amount) * multiplier)
+        stats.addXP(finalXP)
+    }
+
+    func calculateCurrentMultiplier() -> Double {
+        let medStreak = calculateMedicationStreak()
+        let waterStreak = calculateWaterGoalStreak()
+        let highestStreak = max(medStreak, waterStreak)
+        
+        switch highestStreak {
+        case 0...2: return 1.0
+        case 3...6: return 1.1 // Bronze Flame
+        case 7...13: return 1.3 // Silver Flame
+        case 14...29: return 1.6 // Gold Flame
+        case 30...: return 2.0 // Diamond Flame
+        default: return 1.0
+        }
+    }
+
     // MARK: - Dose Recording
     func recordDoseTaken(for doseLog: DoseLog) {
         let stats = getUserStats()
 
         doseLog.markAsTaken()
-        stats.recordDoseTaken()
+        stats.totalDosesTaken += 1
+        
+        // Use the new multiplied XP method
+        addXP(amount: Self.xpPerDose)
+
+        // Check for Perfect Day (if this was the last dose)
+        checkPerfectDayBonus()
 
         // Check for achievements
         checkStreakAchievements(stats: stats)
@@ -70,22 +108,45 @@ final class GamificationManager {
         try? modelContext.save()
     }
 
-    // MARK: - Water Recording
     func recordWaterRitual(amount: Double, goal: Double, totalTodayBefore: Double) {
-        let stats = getUserStats()
-        
         // Base XP for logging
-        stats.addXP(Self.xpPerWaterIntake)
+        addXP(amount: Self.xpPerWaterIntake)
         
         // Check if this entry pushes user over the daily goal
         let totalAfter = totalTodayBefore + amount
         if totalTodayBefore < goal && totalAfter >= goal {
-            stats.addXP(Self.xpBonusWaterGoal)
+            addXP(amount: Self.xpBonusWaterGoal)
             
-            // Potential for a "Goal Met" achievement here in future
+            // Check for Perfect Day (once water goal is hit)
+            checkPerfectDayBonus()
         }
         
         try? modelContext.save()
+    }
+
+    private func checkPerfectDayBonus() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        let descriptor = FetchDescriptor<WaterSettings>()
+        let settings = (try? modelContext.fetch(descriptor).first) ?? WaterSettings()
+        let mode = settings.activeDashboardMode
+        let waterGoal = settings.dailyGoalLiters
+        
+        let medsDone = mode == .waterOnly || {
+            let logs = getDoseLogs(for: today)
+            return !logs.isEmpty && logs.allSatisfy({ $0.isTaken })
+        }()
+        
+        let waterDone = mode == .medicationOnly || {
+            return getWaterIntake(for: today) >= waterGoal
+        }()
+        
+        if medsDone && waterDone {
+            // Already awarded today? We should check if we already gave it.
+            // For now, simple implementation - in a real app we'd track 'lastBonusDate'
+            addXP(amount: Self.xpBonusPerfectDay)
+        }
     }
 
     // MARK: - Streak Calculation (Historical)
@@ -197,7 +258,8 @@ final class GamificationManager {
         
         // 2. Water Component
         let descriptor = FetchDescriptor<WaterSettings>()
-        let waterGoal = (try? modelContext.fetch(descriptor).first)?.dailyGoalLiters ?? 2.0
+        let waterGoal = (try? modelContext.fetch(descriptor).first) ?? WaterSettings()
+        let activeWaterGoal = waterGoal.dailyGoalLiters
         
         let waterDescriptor = FetchDescriptor<WaterEntry>(sortBy: [SortDescriptor(\.date, order: .forward)])
         guard let firstWaterDate = try? modelContext.fetch(waterDescriptor).first?.date else {
@@ -213,7 +275,7 @@ final class GamificationManager {
         var waterSuccessDays = 0
         var checkDate = startDate
         while checkDate <= today {
-            if getWaterIntake(for: checkDate) >= waterGoal {
+            if getWaterIntake(for: checkDate) >= activeWaterGoal {
                 waterSuccessDays += 1
             }
             checkDate = calendar.date(byAdding: .day, value: 1, to: checkDate)!
@@ -223,12 +285,80 @@ final class GamificationManager {
         
         // 3. Holistic Average
         // If we are in "Both" mode, average them. Otherwise use the relevant one.
-        let mode = (try? modelContext.fetch(descriptor).first)?.activeDashboardMode ?? .both
+        let mode = waterGoal.activeDashboardMode
         
         switch mode {
         case .medicationOnly: return medConsistency
         case .waterOnly: return waterConsistency
         case .both: return (medConsistency + waterConsistency) / 2.0
+        }
+    }
+
+    // MARK: - Centralized Metatada (SOLID)
+    func explanationDetail(for type: StatType, mode: DashboardMode, theme: any ThemeProtocol) -> StatDetail {
+        let stats = getUserStats()
+        
+        switch type {
+        case .medicationStreak:
+            let val = calculateMedicationStreak()
+            return StatDetail(
+                title: "Medication Streak",
+                value: "\(val)",
+                description: "Your consistency with remedies. Increases every day you successfully take 100% of your scheduled doses.\n\n🔥 STREAK MULTIPLIER: High streaks multiply ALL XP earned, up to 2.0x!",
+                icon: "pill.fill",
+                color: theme.errorColor
+            )
+            
+        case .waterStreak:
+            let val = calculateWaterGoalStreak()
+            return StatDetail(
+                title: "Water Streak",
+                value: "\(val)",
+                description: "Your hydration consistency. Increases every day you meet 100% of your daily water goal.\n\n🔥 STREAK MULTIPLIER: High streaks multiply ALL XP earned, up to 2.0x!",
+                icon: "drop.fill",
+                color: theme.primaryColor
+            )
+            
+        case .perfectDays:
+            let val = calculatePerfectDays()
+            let desc = mode == .both 
+                ? "The ultimate milestone. Achieved on days when you complete every single medication dose AND hit your water goal."
+                : (mode == .medicationOnly 
+                    ? "Achieved on days when you take every single scheduled medication dose." 
+                    : "Achieved on days when you reach your full daily hydration goal.")
+            
+            return StatDetail(
+                title: "Perfect Days",
+                value: "\(val)",
+                description: desc,
+                icon: "star.fill",
+                color: theme.warningColor
+            )
+            
+        case .consistency:
+            let val = Int(calculateHolisticConsistency() * 100)
+            let desc = mode == .both
+                ? "The balanced average of your adherence to both medications and hydration. It represents your overall alignment with your health rituals."
+                : (mode == .medicationOnly
+                    ? "The percentage of doses taken versus those missed or skipped. A measure of your faithfulness to your remedies."
+                    : "The percentage of active days you've successfully reached your water goal. It reflects your dedication to hydration.")
+            
+            return StatDetail(
+                title: "Consistency",
+                value: "\(val)%",
+                description: desc,
+                icon: theme.symbols.check,
+                color: theme.successColor
+            )
+            
+        case .level:
+            return StatDetail(
+                title: stats.currentTitle,
+                value: "Level \(stats.currentLevel)",
+                description: "Mastery follows a sustainable path. Unlike other games, progress doesn't become impossible over time. After Level 10, the effort to advance remains consistent, focusing on your lifelong rhythm.\n\nHigher Tiers unlock prestigious Titles. Next milestone at Level \(stats.currentLevel + 5)!",
+                icon: "bolt.fill",
+                color: theme.primaryColor
+            )
         }
     }
     

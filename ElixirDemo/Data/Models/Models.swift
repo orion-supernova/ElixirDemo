@@ -7,6 +7,26 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
+
+// MARK: - Stat Detail Model
+@Observable
+final class StatDetail: Identifiable {
+    let id = UUID()
+    let title: String
+    let value: String
+    let description: String
+    let icon: String
+    let color: Color
+
+    init(title: String, value: String, description: String, icon: String, color: Color) {
+        self.title = title
+        self.value = value
+        self.description = description
+        self.icon = icon
+        self.color = color
+    }
+}
 
 // MARK: - Medication Model
 @Model
@@ -181,7 +201,6 @@ enum DoseStatus: String, Codable {
 final class UserStats {
     var id: UUID
     var totalXP: Int
-    var currentLevel: Int
     var currentStreak: Int
     var longestStreak: Int
     var totalDosesTaken: Int
@@ -196,6 +215,19 @@ final class UserStats {
     }
 
     // Computed Properties
+    var currentLevel: Int {
+        var calculatedLevel = 1
+        // Loop through levels to find the highest we've surpassed
+        for level in 1...100 { // Assuming a reasonable max level
+            if totalXP >= xpRequiredForLevel(level) {
+                calculatedLevel = level
+            } else {
+                break
+            }
+        }
+        return calculatedLevel
+    }
+
     var xpToNextLevel: Int {
         xpRequiredForLevel(currentLevel + 1)
     }
@@ -210,13 +242,46 @@ final class UserStats {
         return min(Double(currentProgress) / Double(levelRange), 1.0)
     }
 
+    struct TitleMilestone: Identifiable {
+        let id = UUID()
+        let title: String
+        let levelRange: ClosedRange<Int>
+        var icon: String {
+            switch levelRange.lowerBound {
+            case 1...12: return "leaf.fill"
+            case 13...25: return "flask.fill"
+            case 26...50: return "crown.fill"
+            case 51...: return "sparkles"
+            default: return "star.fill"
+            }
+        }
+    }
+    
+    static let allMilestones: [TitleMilestone] = [
+        TitleMilestone(title: "Initiate", levelRange: 1...3),
+        TitleMilestone(title: "Seeker", levelRange: 4...7),
+        TitleMilestone(title: "Apothecary", levelRange: 8...12),
+        TitleMilestone(title: "Jade Alchemist", levelRange: 13...18),
+        TitleMilestone(title: "Gold Alchemist", levelRange: 19...25),
+        TitleMilestone(title: "Royal Physician", levelRange: 26...35),
+        TitleMilestone(title: "Grand Master", levelRange: 36...50),
+        TitleMilestone(title: "Diamond Healer", levelRange: 51...75),
+        TitleMilestone(title: "Eternal Sage", levelRange: 76...99),
+        TitleMilestone(title: "Legendary Ritualist", levelRange: 100...100)
+    ]
+
     var currentTitle: String {
         switch currentLevel {
-        case 1...5: return "Apprentice"
-        case 6...15: return "Alchemist"
-        case 16...30: return "Master"
-        case 31...50: return "Immortal"
-        default: return "Legend"
+        case 1...3: return "Initiate"
+        case 4...7: return "Seeker"
+        case 8...12: return "Apothecary"
+        case 13...18: return "Jade Alchemist"
+        case 19...25: return "Gold Alchemist"
+        case 26...35: return "Royal Physician"
+        case 36...50: return "Grand Master"
+        case 51...75: return "Diamond Healer"
+        case 76...99: return "Eternal Sage"
+        default: return "Legendary Ritualist"
         }
     }
 
@@ -229,7 +294,6 @@ final class UserStats {
     init() {
         self.id = UUID()
         self.totalXP = 0
-        self.currentLevel = 1
         self.currentStreak = 0
         self.longestStreak = 0
         self.totalDosesTaken = 0
@@ -242,7 +306,6 @@ final class UserStats {
     // XP System Logic
     func addXP(_ amount: Int) {
         totalXP += amount
-        updateLevel()
         lastUpdated = Date()
     }
 
@@ -274,22 +337,19 @@ final class UserStats {
         lastUpdated = Date()
     }
 
-    private func updateLevel() {
-        var newLevel = 1
-        for level in 1...100 {
-            if totalXP >= xpRequiredForLevel(level) {
-                newLevel = level
-            } else {
-                break
-            }
-        }
-        currentLevel = newLevel
-    }
-
-    // XP formula: exponential growth
+    // XP formula: Linear growth with cap for sustainable mastery
     private func xpRequiredForLevel(_ level: Int) -> Int {
         if level <= 1 { return 0 }
-        return Int(pow(Double(level - 1), 2.0) * 50)
+        
+        // Fast onboarding (Levels 1-10)
+        if level <= 10 {
+            return (level - 1) * 150
+        }
+        
+        // Sustainable pace (Levels 11+)
+        // Level 10 XP is 9 * 150 = 1350.
+        // Each level after 10 requires a consistent 1500 XP increase.
+        return 1350 + (level - 10) * 1500
     }
 }
 
@@ -347,7 +407,6 @@ extension UserStats {
     static var preview: UserStats {
         let stats = UserStats()
         stats.totalXP = 450
-        stats.currentLevel = 5
         stats.currentStreak = 7
         stats.longestStreak = 14
         stats.totalDosesTaken = 45

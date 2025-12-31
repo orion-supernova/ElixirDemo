@@ -135,7 +135,6 @@ final class DataController {
             // Create user stats
             let stats = UserStats()
             stats.totalXP = 450
-            stats.currentLevel = 5
             stats.currentStreak = 7
             stats.longestStreak = 14
             stats.totalDosesTaken = 45
