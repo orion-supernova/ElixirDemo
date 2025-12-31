@@ -12,6 +12,8 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ThemeManager.self) private var themeManager
     @State private var viewModel: DashboardViewModel?
+    @State private var doseLogToDelete: DoseLog?
+    @State private var showDeleteConfirmation = false
     
     var body: some View {
         ZStack {
@@ -54,6 +56,17 @@ struct DashboardView: View {
             } else {
                 viewModel?.refresh()
             }
+        }
+        .alert("Delete Ritual?", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { doseLogToDelete = nil }
+            Button("Delete", role: .destructive) {
+                if let log = doseLogToDelete {
+                    viewModel?.deleteMedication(for: log)
+                }
+                doseLogToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this ritual? This will remove all future reminders.")
         }
     }
     
@@ -310,6 +323,14 @@ struct DashboardView: View {
                                 viewModel.markDoseAsSkipped(doseLog)
                             }
                         )
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                doseLogToDelete = doseLog
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }

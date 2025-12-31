@@ -230,6 +230,26 @@ final class DashboardViewModel {
             return .none
         }
     }
+    
+    // MARK: - Deletion
+    func deleteMedication(for doseLog: DoseLog) {
+        guard let medication = doseLog.medication else { return }
+        
+        // Cancel notifications first
+        NotificationManager.shared.cancelNotifications(for: medication)
+        
+        // Delete medication (cascades to logs)
+        modelContext.delete(medication)
+        
+        do {
+            try modelContext.save()
+            // Refresh data
+            refresh()
+        } catch {
+            print("Failed to delete medication: \(error)")
+        }
+    }
+
 }
 
 // MARK: - Completion Status

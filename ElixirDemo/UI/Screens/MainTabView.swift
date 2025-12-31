@@ -11,6 +11,7 @@ import SwiftData
 struct MainTabView: View {
     @Environment(ThemeManager.self) private var themeManager
     @State private var selectedTab: AppTab = .dashboard
+    @State private var notificationState = NotificationState.shared
 
     var body: some View {
         NavigationStack {
@@ -31,7 +32,17 @@ struct MainTabView: View {
                     }
                 }
             }
+
             .animation(.ritualSpring, value: selectedTab)
+            .overlay {
+                 if notificationState.isAlertVisible,
+                    let uuid = notificationState.activeMedicationId,
+                    let content = notificationState.activeNotificationContent {
+                     NotificationAlertView(medicationId: uuid, content: content)
+                         .transition(.opacity)
+                         .zIndex(100)
+                 }
+            }
         }
     }
 

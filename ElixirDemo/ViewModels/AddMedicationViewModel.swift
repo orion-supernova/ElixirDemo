@@ -45,9 +45,7 @@ final class AddMedicationViewModel {
 
     // MARK: - Default Setup
     private func setupDefaultScheduledTimes() {
-        let calendar = Calendar.current
-        let morning = calendar.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
-        scheduledTimes = [morning]
+        scheduledTimes = [Date()]
     }
 
     // MARK: - Validation
@@ -103,6 +101,9 @@ final class AddMedicationViewModel {
 
         // Logs will be generated on-demand by Dashboard/Calendar
         
+        // Schedule Notifications
+        NotificationManager.shared.scheduleNotifications(for: medication)
+        
         do {
             try modelContext.save()
             return true
@@ -117,9 +118,7 @@ final class AddMedicationViewModel {
 
     // MARK: - Time Management
     func addScheduledTime() {
-        let calendar = Calendar.current
-        let newTime = calendar.date(from: DateComponents(hour: 8, minute: 0)) ?? Date()
-        scheduledTimes.append(newTime)
+        scheduledTimes.append(Date())
     }
 
     func removeScheduledTime(at index: Int) {

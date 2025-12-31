@@ -17,6 +17,9 @@ struct ElixirDemoApp: App {
             MainTabView()
                 .preferredColorScheme(.dark)
                 .environment(themeManager)
+                .onAppear {
+                    NotificationManager.shared.requestAuthorization()
+                }
         }
         .modelContainer(DataController.shared.container)
     }

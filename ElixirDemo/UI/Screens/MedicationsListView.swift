@@ -182,6 +182,7 @@ struct MedicationSettingsCard: View {
     }
 
     private func deleteMedication() {
+        NotificationManager.shared.cancelNotifications(for: medication)
         modelContext.delete(medication)
         try? modelContext.save()
     }
