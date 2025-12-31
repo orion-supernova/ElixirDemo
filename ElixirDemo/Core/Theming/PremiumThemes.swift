@@ -119,6 +119,46 @@ struct RPGTheme_BloodMage: ThemeProtocol {
     var cornerRadius: CGFloat = 20
 }
 
+struct RPGTheme_Fairy: ThemeProtocol {
+    let id = "rpg-fairy"
+    let displayName = "Fae Woods"
+    let category: ThemeCategory = .rpg
+    let isCustom = false
+    
+    // Typography: Whimsical but Readable
+    var fontName: String? = "Baskerville" 
+    var headerFontName: String? = "Baskerville-SemiBold"
+    
+    var emojis: ThemeEmojis = .fairy
+    
+    // Palette: Ethereal - Pink/Purple/Teal
+    var backgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(hex: "2e1065"), // Deep Purple
+                Color(hex: "4c1d95"), // Violet
+                Color(hex: "be185d")  // Pink
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    
+    var primaryColor: Color = Color(hex: "f472b6") // Soft Pink
+    var secondaryColor: Color = Color(hex: "c084fc") // Lavender
+    var accentColor: Color = Color(hex: "2dd4bf") // Teal
+    
+    var surfaceColor: Color = Color.black.opacity(0.3)
+    var textPrimary: Color = Color(hex: "fdf4ff") // Pale Pink White
+    var textSecondary: Color = Color(hex: "e879f9") // Stronger Pink
+    
+    var successColor: Color = Color(hex: "34d399")
+    var warningColor: Color = Color(hex: "fcd34d")
+    var errorColor: Color = Color(hex: "fb7185")
+    
+    var cornerRadius: CGFloat = 24 // Very Round
+}
+
 // MARK: - CYBERPUNK THEMES
 struct CyberpunkTheme_NeonCity: ThemeProtocol {
     let id = "cyberpunk-neon"
@@ -205,10 +245,7 @@ struct CleanTheme: ThemeProtocol {
     var headerFontName: String? = nil
     var emojis: ThemeEmojis = .clean
     
-    // Palette: System Adaptive (For now strictly light/dark aware if possible, but simplest is a nice clean dark mode as base)
-    // To support true Light/Dark mode we'd use Color(uiColor: .systemBackground) etc.
-    // But since the app forces dark mode, we will make "Clean" a very polished Dark Mode.
-    
+    // Palette: System Adaptive
     var backgroundGradient: LinearGradient {
         LinearGradient(
             colors: [Color(hex: "000000"), Color(hex: "1C1C1E")], // iOS System Backgrounds
@@ -230,4 +267,44 @@ struct CleanTheme: ThemeProtocol {
     var errorColor: Color = Color.red
     
     var cornerRadius: CGFloat = 10 // Apple Standard curve
+}
+
+struct CleanTheme_Lilac: ThemeProtocol {
+    let id = "clean-lilac"
+    let displayName = "Lilac Dream"
+    let category: ThemeCategory = .clean
+    let isCustom = false
+    
+    // Typography: System Default (Clean)
+    var fontName: String? = nil
+    var headerFontName: String? = nil
+    var emojis: ThemeEmojis = .clean
+    
+    // Palette: White/Lilac Gradient for a stunning light/soft look, or dark lilac.
+    // User likes "Stunning". Let's go for a rich, modern Dark Lilac.
+    var backgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(hex: "1e1b4b"), // Deep Indigo
+                Color(hex: "4c1d95"), // Violet 800
+                Color(hex: "5b21b6")  // Violet 700
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
+    var primaryColor: Color = Color(hex: "d8b4fe") // Lavender 300
+    var secondaryColor: Color = Color(hex: "a78bfa") // Violet 400
+    var accentColor: Color = Color(hex: "c4b5fd") // Violet 300
+    
+    var surfaceColor: Color = Color.white.opacity(0.1)
+    var textPrimary: Color = .white
+    var textSecondary: Color = Color(hex: "e9d5ff") // Pale Purple
+    
+    var successColor: Color = Color(hex: "34d399")
+    var warningColor: Color = Color(hex: "fcd34d")
+    var errorColor: Color = Color(hex: "fb7185")
+    
+    var cornerRadius: CGFloat = 16
 }

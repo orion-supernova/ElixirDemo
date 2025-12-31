@@ -25,9 +25,11 @@ final class ThemeManager {
         RPGTheme_Paladin(),
         RPGTheme_Necromancer(),
         RPGTheme_BloodMage(),
+        RPGTheme_Fairy(),
         CyberpunkTheme_NeonCity(),
         CyberpunkTheme_Matrix(),
-        CleanTheme()
+        CleanTheme(),
+        CleanTheme_Lilac()
     ]
     
     var availableThemes: [ThemeProtocol] {

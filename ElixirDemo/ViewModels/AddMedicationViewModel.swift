@@ -25,6 +25,11 @@ final class AddMedicationViewModel {
     var hasEndDate: Bool = false
     var endDate: Date = Date()
 
+    // Frequency-specific fields
+    var startDayOffset: Int = 0 // 0 = today, 1 = tomorrow (for Every Other Day)
+    var selectedWeekday: Int = Calendar.current.component(.weekday, from: Date()) // 1=Sunday, 7=Saturday (for Weekly)
+    var selectedWeekdays: Set<Int> = [] // For Specific Days (1=Sunday, 7=Saturday)
+
     // Validation
     var showError: Bool = false
     var errorMessage: String = ""
@@ -55,8 +60,16 @@ final class AddMedicationViewModel {
             return false
         }
 
-        if scheduledTimes.isEmpty {
+        // As Needed frequency doesn't require scheduled times
+        if selectedFrequency != .asNeeded && scheduledTimes.isEmpty {
             errorMessage = "Please add at least one scheduled time"
+            showError = true
+            return false
+        }
+
+        // Specific Days frequency requires at least one day selected
+        if selectedFrequency == .specificDays && selectedWeekdays.isEmpty {
+            errorMessage = "Please select at least one day of the week"
             showError = true
             return false
         }
@@ -166,8 +179,26 @@ final class AddMedicationViewModel {
             }
         case .asNeeded:
             scheduledTimes = []
-        default:
-            break
+        case .everyOtherDay:
+            if scheduledTimes.count != 1 {
+                scheduledTimes = [scheduledTimes.first ?? defaultMorningTime()]
+            }
+            // Reset to today by default
+            startDayOffset = 0
+        case .weekly:
+            if scheduledTimes.count != 1 {
+                scheduledTimes = [scheduledTimes.first ?? defaultMorningTime()]
+            }
+            // Set to current weekday by default
+            selectedWeekday = Calendar.current.component(.weekday, from: Date())
+        case .specificDays:
+            if scheduledTimes.count != 1 {
+                scheduledTimes = [scheduledTimes.first ?? defaultMorningTime()]
+            }
+            // Initialize with current weekday if empty
+            if selectedWeekdays.isEmpty {
+                selectedWeekdays = [Calendar.current.component(.weekday, from: Date())]
+            }
         }
     }
 

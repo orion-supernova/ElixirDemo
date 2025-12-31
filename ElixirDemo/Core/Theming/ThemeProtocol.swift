@@ -43,7 +43,11 @@ struct ThemeEmojis: Codable {
     )
     
     static let clean = ThemeEmojis(
-        check: "✓", uncheck: "○", streak: "🔥", level: "★", xp: "pts", currency: "$", health: "♥"
+        check: "✓", uncheck: "○", streak: "☰", level: "★", xp: "pts", currency: "$", health: "♥"
+    )
+    
+    static let fairy = ThemeEmojis(
+        check: "✨", uncheck: "🥚", streak: "🦋", level: "👑", xp: "pixie dust", currency: "🍄", health: "💖"
     )
 }
 

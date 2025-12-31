@@ -70,6 +70,7 @@ enum Frequency: String, Codable, CaseIterable {
     case asNeeded = "As Needed"
     case everyOtherDay = "Every Other Day"
     case weekly = "Weekly"
+    case specificDays = "Specific Days"
 
     var timesPerDay: Int {
         switch self {
@@ -80,6 +81,7 @@ enum Frequency: String, Codable, CaseIterable {
         case .asNeeded: return 0
         case .everyOtherDay: return 1
         case .weekly: return 1
+        case .specificDays: return 1
         }
     }
 }

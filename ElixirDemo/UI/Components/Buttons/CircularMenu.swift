@@ -47,25 +47,50 @@ struct CircularMenu: View {
             }) {
                 ZStack {
                     Circle()
-                        .fill(themeManager.currentTheme.primaryGradient)
-                        .frame(width: 64, height: 64)
+                        .fill(themeManager.currentTheme.primaryColor)
+                        .frame(width: 56, height: 56)
                         .shadow(
                             color: Color.black.opacity(0.3),
                             radius: 10,
                             x: 0,
                             y: 5
                         )
-                    
-                    Image(systemName: isExpanded ? "xmark" : "sparkles")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+
+                    if isExpanded {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .rotationEffect(.degrees(90))
+                    } else {
+                        // Check if it's a custom theme (fairy)
+                        if themeManager.currentTheme.isCustom {
+                            Image(systemName: "bird")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        } else {
+                            Image(systemName: iconNameForCategory())
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
                 }
             }
             .scaleEffect(isExpanded ? 1.1 : 1.0)
         }
     }
     
+    // MARK: - Icon Name Helper
+    private func iconNameForCategory() -> String {
+        switch themeManager.currentTheme.category {
+        case .clean:
+            return "menucard"
+        case .cyberpunk:
+            return "bolt"
+        case .rpg:
+            return "flame"
+        }
+    }
+
     // MARK: - Angle Calculation
     private func angleForIndex(_ index: Int) -> Double {
         // Position items in an arc from Top to Right (since button is Bottom-Left)
@@ -105,15 +130,17 @@ struct MenuButton: View {
                 ZStack {
                     Circle()
                         .fill(isSelected ?
-                              themeManager.currentTheme.primaryGradient :
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.1)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
+                              themeManager.currentTheme.primaryColor :
+                              Color.white.opacity(0.2)
                         )
                         .frame(width: 56, height: 56)
-                    
+
+                    if !isSelected {
+                        Circle()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            .frame(width: 56, height: 56)
+                    }
+
                     Image(systemName: item.icon)
                         .font(.system(size: 24))
                         .foregroundColor(.white)
@@ -121,15 +148,16 @@ struct MenuButton: View {
                 .shadow(
                     color: isSelected ?
                     themeManager.currentTheme.primaryColor.opacity(0.5) :
-                        Color.black.opacity(0.2),
+                        Color.black.opacity(0.3),
                     radius: 10,
                     x: 0,
                     y: 5
                 )
-                
+
                 Text(item.label)
                     .font(themeManager.currentTheme.font(for: .caption))
-                    .foregroundColor(themeManager.currentTheme.textPrimary)
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
             }
         }
         .offset(x: cos(angle * .pi / 180) * radius,
