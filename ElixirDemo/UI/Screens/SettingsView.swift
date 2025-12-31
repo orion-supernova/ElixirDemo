@@ -193,7 +193,9 @@ struct SettingsView: View {
                 .foregroundColor(themeManager.currentTheme.textPrimary)
             
             VStack(spacing: 0) {
-                SettingsRow(icon: "info.circle.fill", title: "Version", value: "1.0.0")
+                SettingsRow(icon: "info.circle.fill", title: "Version", value: appVersion)
+                Divider().background(Color.white.opacity(0.1))
+                SettingsRow(icon: "hammer.fill", title: "Build", value: appBuild)
                 Divider().background(Color.white.opacity(0.1))
                 SettingsRow(icon: "doc.text.fill", title: "Privacy Policy", value: "")
                 Divider().background(Color.white.opacity(0.1))
@@ -208,6 +210,14 @@ struct SettingsView: View {
     }
     
     // MARK: - Helpers
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+    
+    private var appBuild: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+    
     private func loadUserStats() {
         let descriptor = FetchDescriptor<UserStats>()
         if let stats = try? modelContext.fetch(descriptor).first {

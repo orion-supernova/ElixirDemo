@@ -17,14 +17,9 @@ struct StatCard: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            if iconName.contains(".") {
-                Image(systemName: iconName)
-                    .font(.system(size: 20))
-                    .foregroundStyle(color)
-            } else {
-                Text(iconName)
-                    .font(.system(size: 20))
-            }
+            Image(systemName: iconName)
+                .font(.system(size: 20))
+                .foregroundStyle(color)
             
             Text(value)
                 .font(themeManager.currentTheme.font(for: .title2))
