@@ -48,7 +48,6 @@ struct WaterTrackingContent: View {
     @Binding var showHistory: Bool
     @Binding var showReset: Bool
     
-    @State private var waveOffset = Angle(degrees: 0)
     @State private var showingAddConfirmation = false
     @State private var lastAddedAmount: Double = 0
     
@@ -243,28 +242,28 @@ struct WaterTrackingContent: View {
             }
             .zIndex(2)
             
-            // Liquid Shape
-            GeometryReader { geo in
-                let size = geo.size
-                WaveShape(offset: waveOffset, percent: progress)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                themeManager.currentTheme.primaryColor.opacity(0.8),
-                                themeManager.currentTheme.secondaryColor.opacity(0.9)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
+            // Liquid Shape with TimelineView for guaranteed animation
+            TimelineView(.animation) { timeline in
+                let now = timeline.date.timeIntervalSinceReferenceDate
+                let angle = Angle(degrees: now.remainder(dividingBy: 2) * 180) // 2 second cycle
+                
+                GeometryReader { geo in
+                    let size = geo.size
+                    WaveShape(offset: angle, percent: progress)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    themeManager.currentTheme.primaryColor.opacity(0.8),
+                                    themeManager.currentTheme.secondaryColor.opacity(0.9)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                    .frame(width: size.width, height: size.height)
+                        .frame(width: size.width, height: size.height)
+                }
             }
             .mask(Circle())
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                waveOffset = Angle(degrees: 360)
-            }
         }
     }
     
