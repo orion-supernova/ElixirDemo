@@ -51,6 +51,8 @@ struct WaterTrackingContent: View {
     @State private var showingAddConfirmation = false
     @State private var lastAddedAmount: Double = 0
     
+    @State private var undoableEntryIDs: [UUID] = []
+    
     // Initializers to allow optional bindings if used directly in Dashboard
     init(showHistory: Binding<Bool> = .constant(false), showReset: Binding<Bool> = .constant(false)) {
         self._showHistory = showHistory
@@ -164,17 +166,19 @@ struct WaterTrackingContent: View {
                         AddWaterButton(amount: 0.75, label: "750ml", icon: "mug.fill") { addWater(0.75) }
                     }
                     
-                    // Decrease Functionality
-                    Button(action: decreaseWater) {
-                        HStack {
-                            Image(systemName: "minus.circle.fill")
-                            Text("Remove Last Entry")
+                    // Undo Functionality
+                    if !undoableEntryIDs.isEmpty {
+                        Button(action: decreaseWater) {
+                            HStack {
+                                Image(systemName: "arrow.uturn.backward.circle.fill")
+                                Text("Undo Last Entry (\(undoableEntryIDs.count))")
+                            }
+                            .font(themeManager.currentTheme.font(for: .callout))
+                            .foregroundColor(themeManager.currentTheme.errorColor.opacity(0.8))
+                            .padding(.top, Spacing.sm)
                         }
-                        .font(themeManager.currentTheme.font(for: .callout))
-                        .foregroundColor(themeManager.currentTheme.errorColor.opacity(0.8))
-                        .padding(.top, Spacing.sm)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-                    .disabled(entries.isEmpty)
                 }
                 
                 Spacer()
@@ -212,6 +216,9 @@ struct WaterTrackingContent: View {
                 }
                 .zIndex(10)
             }
+        }
+        .onDisappear {
+            undoableEntryIDs.removeAll()
         }
         .alert("Reset Today's Water?", isPresented: $showReset) {
             Button("Cancel", role: .cancel) { }
@@ -274,6 +281,7 @@ struct WaterTrackingContent: View {
         
         withAnimation {
             showingAddConfirmation = true
+            undoableEntryIDs.append(entry.id)
         }
         
         // Haptic feedback
@@ -281,18 +289,41 @@ struct WaterTrackingContent: View {
         generator.notificationOccurred(.success)
         
         try? modelContext.save()
+        
+        // Timer to remove this specific ID after 30 seconds
+        let idToRemove = entry.id
+        Task {
+            try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
+            withAnimation {
+                undoableEntryIDs.removeAll(where: { $0 == idToRemove })
+            }
+        }
     }
     
     private func decreaseWater() {
+        guard let lastID = undoableEntryIDs.last else { return }
+        
+        // Find the specific entry to delete
         let calendar = Calendar.current
         let todayEntries = entries.filter { calendar.isDateInToday($0.date) }
         
-        if let lastEntry = todayEntries.last {
-            modelContext.delete(lastEntry)
+        if let entryToDelete = todayEntries.first(where: { $0.id == lastID }) {
+            modelContext.delete(entryToDelete)
             try? modelContext.save()
             
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
+            
+            withAnimation {
+                undoableEntryIDs.removeLast()
+            }
+        } else {
+            // Fallback: if ID not found but undo was possible, remove last entry from model anyway
+            if let lastEntry = todayEntries.last {
+                modelContext.delete(lastEntry)
+                try? modelContext.save()
+                withAnimation { undoableEntryIDs.removeLast() }
+            }
         }
     }
     
