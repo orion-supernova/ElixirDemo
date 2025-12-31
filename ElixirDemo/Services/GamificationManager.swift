@@ -353,7 +353,7 @@ final class GamificationManager {
             
         case .level:
             return StatDetail(
-                title: stats.currentTitle,
+                title: theme.masteryTitle(for: stats.currentLevel),
                 value: "Level \(stats.currentLevel)",
                 description: "Mastery follows a sustainable path. Unlike other games, progress doesn't become impossible over time. After Level 10, the effort to advance remains consistent, focusing on your lifelong rhythm.\n\nHigher Tiers unlock prestigious Titles. Next milestone at Level \(stats.currentLevel + 5)!",
                 icon: "bolt.fill",

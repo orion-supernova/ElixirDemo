@@ -106,7 +106,7 @@ struct SettingsView: View {
                     selectedStatForExplanation = gamification.explanationDetail(for: .level, mode: mode, theme: themeManager.currentTheme)
                 }) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(stats.currentTitle)
+                        Text(themeManager.currentTheme.masteryTitle(for: stats.currentLevel))
                             .font(themeManager.currentTheme.font(for: .headline))
                             .foregroundColor(themeManager.currentTheme.primaryColor)
                         

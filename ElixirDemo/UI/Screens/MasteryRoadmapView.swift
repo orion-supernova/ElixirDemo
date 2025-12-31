@@ -47,7 +47,7 @@ struct MasteryRoadmapView: View {
                                 .padding(.bottom, Spacing.md)
                             
                             VStack(spacing: 0) {
-                                ForEach(UserStats.allMilestones) { milestone in
+                                ForEach(themeManager.currentTheme.milestoneDefinitions()) { milestone in
                                     milestoneRow(milestone)
                                 }
                             }

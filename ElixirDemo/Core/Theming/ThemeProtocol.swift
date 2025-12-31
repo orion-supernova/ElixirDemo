@@ -127,12 +127,83 @@ protocol ThemeProtocol: Identifiable {
     // MARK: Helper for Gradients
     var primaryGradient: LinearGradient { get }
     
+    // MARK: Mastery
+    var masteryTitles: [Int: String] { get }
+    
     // MARK: Helper for Fonts
     func font(for style: UserFont) -> Font
 }
 
 // MARK: - Default Implementation
 extension ThemeProtocol {
+    var masteryTitles: [Int: String] {
+        switch category {
+        case .rpg:
+            return [
+                1: "Initiate",
+                4: "Seeker",
+                8: "Apothecary",
+                13: "Jade Alchemist",
+                19: "Gold Alchemist",
+                26: "Royal Physician",
+                36: "Grand Master",
+                51: "Diamond Healer",
+                76: "Eternal Sage",
+                100: "Legendary Ritualist"
+            ]
+        case .cyberpunk:
+            return [
+                1: "Script Kid",
+                4: "Netrunner",
+                8: "System Admin",
+                13: "Data Rogue",
+                19: "Neon Ghost",
+                26: "Console Cowboy",
+                36: "Icebreaker",
+                51: "Neural God",
+                76: "Binary Sage",
+                100: "The Singularity"
+            ]
+        case .clean:
+            return [
+                1: "Novice",
+                4: "Believer",
+                8: "Achiever",
+                13: "Consistent",
+                19: "Dedicated",
+                26: "Committed",
+                36: "Proficient",
+                51: "Master",
+                76: "Expert",
+                100: "Legend"
+            ]
+        }
+    }
+    
+    func masteryTitle(for level: Int) -> String {
+        let sortedLevels = masteryTitles.keys.sorted(by: >)
+        for minLevel in sortedLevels {
+            if level >= minLevel {
+                return masteryTitles[minLevel] ?? "Initiate"
+            }
+        }
+        return "Initiate"
+    }
+    
+    func milestoneDefinitions() -> [UserStats.TitleMilestone] {
+        let sortedLevels = masteryTitles.keys.sorted()
+        var milestones: [UserStats.TitleMilestone] = []
+        
+        for i in 0..<sortedLevels.count {
+            let lower = sortedLevels[i]
+            let upper = (i + 1 < sortedLevels.count) ? sortedLevels[i+1] - 1 : 100
+            let title = masteryTitles[lower] ?? "Unknown"
+            milestones.append(UserStats.TitleMilestone(title: title, levelRange: lower...upper))
+        }
+        
+        return milestones
+    }
+    
     // Default implementation for primary gradient based on colors
     var primaryGradient: LinearGradient {
         LinearGradient(

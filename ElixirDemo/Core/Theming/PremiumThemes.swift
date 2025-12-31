@@ -237,6 +237,21 @@ struct CyberpunkTheme_Matrix: ThemeProtocol {
     
     var cornerRadius: CGFloat = 0 // Very Boxy
     var notificationMessage: String { "The Construct demands precision. Initializing hydration protocol. 💹💧" }
+    
+    var masteryTitles: [Int: String] {
+        [
+            1: "Terminal 0",
+            4: "Buffer",
+            8: "Packet",
+            13: "Encoder",
+            19: "Subroutine",
+            26: "Mainframe",
+            36: "Root Access",
+            51: "Architect",
+            76: "Source Code",
+            100: "The Architect"
+        ]
+    }
 }
 
 // MARK: - CLEAN THEMES

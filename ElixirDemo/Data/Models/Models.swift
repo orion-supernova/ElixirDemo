@@ -256,34 +256,6 @@ final class UserStats {
             }
         }
     }
-    
-    static let allMilestones: [TitleMilestone] = [
-        TitleMilestone(title: "Initiate", levelRange: 1...3),
-        TitleMilestone(title: "Seeker", levelRange: 4...7),
-        TitleMilestone(title: "Apothecary", levelRange: 8...12),
-        TitleMilestone(title: "Jade Alchemist", levelRange: 13...18),
-        TitleMilestone(title: "Gold Alchemist", levelRange: 19...25),
-        TitleMilestone(title: "Royal Physician", levelRange: 26...35),
-        TitleMilestone(title: "Grand Master", levelRange: 36...50),
-        TitleMilestone(title: "Diamond Healer", levelRange: 51...75),
-        TitleMilestone(title: "Eternal Sage", levelRange: 76...99),
-        TitleMilestone(title: "Legendary Ritualist", levelRange: 100...100)
-    ]
-
-    var currentTitle: String {
-        switch currentLevel {
-        case 1...3: return "Initiate"
-        case 4...7: return "Seeker"
-        case 8...12: return "Apothecary"
-        case 13...18: return "Jade Alchemist"
-        case 19...25: return "Gold Alchemist"
-        case 26...35: return "Royal Physician"
-        case 36...50: return "Grand Master"
-        case 51...75: return "Diamond Healer"
-        case 76...99: return "Eternal Sage"
-        default: return "Legendary Ritualist"
-        }
-    }
 
     var completionRate: Double {
         let total = totalDosesTaken + totalDosesSkipped + totalDosesMissed
