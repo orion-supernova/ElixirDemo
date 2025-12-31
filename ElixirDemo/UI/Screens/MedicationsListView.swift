@@ -44,8 +44,9 @@ struct MedicationsListView: View {
     @ViewBuilder
     private var emptyStateView: some View {
         VStack(spacing: Spacing.md) {
-            Text(themeManager.currentTheme.emojis.currency)
+            Image(systemName: themeManager.currentTheme.symbols.currency)
                 .font(.system(size: 64))
+                .foregroundColor(themeManager.currentTheme.primaryColor)
 
             Text("No rituals yet")
                 .font(themeManager.currentTheme.font(for: .headline))

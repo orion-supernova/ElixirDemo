@@ -223,9 +223,9 @@ struct AddCustomThemeView: View {
     
     // MARK: - Save Logic
     private func saveTheme() {
-        // Defaults for now. In a future update we can let users choose category/font/emojis.
+        // Defaults for now. In a future update we can let users choose category/font/symbols.
         let defaultCategory: ThemeCategory = .rpg 
-        let defaultEmojis: ThemeEmojis = .rpg
+        let defaultSymbols: ThemeSymbols = .rpg
         
         let theme = CustomTheme(
             id: UUID().uuidString,
@@ -233,7 +233,7 @@ struct AddCustomThemeView: View {
             category: defaultCategory,
             fontName: nil, // Use system font
             headerFontName: nil,
-            emojis: defaultEmojis,
+            symbols: defaultSymbols,
             primaryColorHex: primaryColor.toHex(),
             secondaryColorHex: secondaryColor.toHex(),
             accentColorHex: accentColor.toHex(),

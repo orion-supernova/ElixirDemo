@@ -99,16 +99,11 @@ struct AddMedicationView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: Spacing.sm) {
-            // Use different emojis for different themes
+            // Use different symbols for different themes
             Group {
-                if themeManager.currentTheme.category == .clean {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(themeManager.currentTheme.primaryColor)
-                } else {
-                    Text(themeManager.currentTheme.emojis.currency)
-                        .font(.system(size: 56))
-                }
+                Image(systemName: themeManager.currentTheme.symbols.currency)
+                    .font(.system(size: 56))
+                    .foregroundStyle(themeManager.currentTheme.primaryGradient)
             }
 
             Text("Create Your Ritual")
@@ -609,8 +604,8 @@ struct AddMedicationView: View {
             }
         }) {
             HStack(spacing: Spacing.sm) {
-                Text(themeManager.currentTheme.emojis.check)
-                    .font(.system(size: 22))
+                Image(systemName: themeManager.currentTheme.symbols.check)
+                    .font(.system(size: 20))
                 Text("Save Ritual")
                     .fontWeight(.semibold)
             }

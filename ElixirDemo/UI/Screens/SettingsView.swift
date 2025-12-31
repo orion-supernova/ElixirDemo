@@ -93,21 +93,21 @@ struct SettingsView: View {
                 StatBadge(
                     value: "\(stats.currentLevel)",
                     label: "Level",
-                    icon: themeManager.currentTheme.emojis.level,
+                    icon: themeManager.currentTheme.symbols.level,
                     color: themeManager.currentTheme.warningColor
                 )
                 
                 StatBadge(
                     value: "\(stats.currentStreak)",
                     label: "Streak",
-                    icon: themeManager.currentTheme.emojis.streak,
+                    icon: themeManager.currentTheme.symbols.streak,
                     color: themeManager.currentTheme.errorColor
                 )
                 
                 StatBadge(
                     value: "\(stats.totalDosesTaken)",
                     label: "Doses",
-                    icon: themeManager.currentTheme.emojis.check,
+                    icon: themeManager.currentTheme.symbols.check,
                     color: themeManager.currentTheme.successColor
                 )
             }
@@ -312,14 +312,9 @@ struct SettingsRow: View {
     
     var body: some View {
         HStack {
-            // Check if icon is an SF Symbol (simplistic check)
-            if icon.contains(".") { 
-                 Image(systemName: icon)
-                    .foregroundColor(themeManager.currentTheme.textSecondary)
-                    .frame(width: 24)
-            } else {
-                Text(icon) // Emoji support for things like flags or custom emojis
-            }
+            Image(systemName: icon)
+                .foregroundColor(themeManager.currentTheme.textSecondary)
+                .frame(width: 24)
             
             Text(title)
                 .font(themeManager.currentTheme.font(for: .callout))
@@ -350,14 +345,9 @@ struct StatBadge: View {
     
     var body: some View {
         VStack(spacing: Spacing.xs) {
-            if icon.contains(".") { // Heuristic for SF Symbol
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(color)
-            } else {
-                Text(icon)
-                    .font(.system(size: 24))
-            }
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(color)
             
             Text(value)
                 .font(themeManager.currentTheme.font(for: .title2))

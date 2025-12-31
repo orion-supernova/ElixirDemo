@@ -16,7 +16,7 @@ struct CustomTheme: ThemeProtocol, Codable, Identifiable {
     var category: ThemeCategory = .rpg // Defaulting to RPG for custom themes for now
     var fontName: String? = nil // System font default
     var headerFontName: String? = nil
-    var emojis: ThemeEmojis = .rpg // Default emojis
+    var symbols: ThemeSymbols = .rpg // Default symbols
     
     // Stored as Hex Strings for Codable conformance
     let primaryColorHex: String

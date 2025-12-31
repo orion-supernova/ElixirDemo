@@ -36,8 +36,8 @@ enum ThemeIdentifier: String, CaseIterable {
     case lilac = "clean-lilac"
 }
 
-// MARK: - Theme Emojis
-struct ThemeEmojis: Codable {
+// MARK: - Theme Symbols
+struct ThemeSymbols: Codable {
     let check: String
     let uncheck: String
     let streak: String
@@ -46,20 +46,44 @@ struct ThemeEmojis: Codable {
     let currency: String
     let health: String
     
-    static let rpg = ThemeEmojis(
-        check: "⚔️", uncheck: "🛡️", streak: "🔥", level: "⭐", xp: "✨", currency: "💎", health: "❤️"
+    static let rpg = ThemeSymbols(
+        check: "shield.fill", 
+        uncheck: "shield", 
+        streak: "flame.fill", 
+        level: "star.fill", 
+        xp: "sparkles", 
+        currency: "diamond.fill", 
+        health: "heart.fill"
     )
     
-    static let cyberpunk = ThemeEmojis(
-        check: "💾", uncheck: "🔋", streak: "⚡", level: "📶", xp: "💿", currency: "💠", health: "❤️"
+    static let cyberpunk = ThemeSymbols(
+        check: "cpu.fill", 
+        uncheck: "cpu", 
+        streak: "bolt.fill", 
+        level: "antenna.radiowaves.left.and.right", 
+        xp: "opticaldisc.fill", 
+        currency: "hexagon.fill", 
+        health: "heart.fill"
     )
     
-    static let clean = ThemeEmojis(
-        check: "✓", uncheck: "○", streak: "📈", level: "★", xp: "pts", currency: "$", health: "♥"
+    static let clean = ThemeSymbols(
+        check: "checkmark.circle.fill", 
+        uncheck: "circle", 
+        streak: "chart.line.uptrend.xyaxis", 
+        level: "medal.fill", 
+        xp: "p.circle.fill", 
+        currency: "dollarsign.circle.fill", 
+        health: "heart.fill"
     )
     
-    static let fairy = ThemeEmojis(
-        check: "✨", uncheck: "🥚", streak: "🦋", level: "👑", xp: "pixie dust", currency: "🍄", health: "💖"
+    static let fairy = ThemeSymbols(
+        check: "sparkles", 
+        uncheck: "circle.dotted", 
+        streak: "bird.fill", 
+        level: "crown.fill", 
+        xp: "wand.and.stars", 
+        currency: "leaf.fill", 
+        health: "heart.circle.fill"
     )
 }
 
@@ -75,8 +99,8 @@ protocol ThemeProtocol: Identifiable {
     var fontName: String? { get }
     var headerFontName: String? { get }
     
-    // MARK: Emojis
-    var emojis: ThemeEmojis { get }
+    // MARK: Symbols
+    var symbols: ThemeSymbols { get }
     
     // MARK: Colors - Palette
     var backgroundGradient: LinearGradient { get }

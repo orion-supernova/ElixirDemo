@@ -83,11 +83,11 @@ struct CircularMenu: View {
     private func iconNameForCategory() -> String {
         switch themeManager.currentTheme.category {
         case .clean:
-            return "menucard"
+            return themeManager.currentTheme.symbols.level
         case .cyberpunk:
-            return "bolt"
+            return themeManager.currentTheme.symbols.streak
         case .rpg:
-            return "flame"
+            return themeManager.currentTheme.symbols.streak
         }
     }
 

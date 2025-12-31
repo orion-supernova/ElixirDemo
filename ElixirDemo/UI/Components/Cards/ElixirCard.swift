@@ -39,11 +39,11 @@ struct ElixirCard: View {
     var statusIcon: some View {
         switch doseLog.status {
         case .taken:
-            Image(systemName: "checkmark.circle.fill")
+            Image(systemName: themeManager.currentTheme.symbols.check)
                 .font(.system(size: 28))
                 .foregroundColor(themeManager.currentTheme.successColor)
         case .pending:
-            Image(systemName: "circle")
+            Image(systemName: themeManager.currentTheme.symbols.uncheck)
                 .font(.system(size: 28))
                 .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.5))
         case .skipped:

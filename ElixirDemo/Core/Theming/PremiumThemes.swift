@@ -21,7 +21,7 @@ struct RPGTheme_Paladin: ThemeProtocol {
     var fontName: String? = "Times New Roman" 
     var headerFontName: String? = "Times New Roman"
     
-    var emojis: ThemeEmojis = .rpg
+    var symbols: ThemeSymbols = .rpg
     
     // Palette: Royal Blue, Gold, White
     var backgroundGradient: LinearGradient {
@@ -59,7 +59,7 @@ struct RPGTheme_Necromancer: ThemeProtocol {
     
     var fontName: String? = "Times New Roman"
     var headerFontName: String? = "Times New Roman"
-    var emojis: ThemeEmojis = .rpg
+    var symbols: ThemeSymbols = .rpg
     
     // Palette: Dark Slate, Eerie Green
     var backgroundGradient: LinearGradient {
@@ -93,7 +93,7 @@ struct RPGTheme_BloodMage: ThemeProtocol {
     
     var fontName: String? = "Times New Roman"
     var headerFontName: String? = "Times New Roman"
-    var emojis: ThemeEmojis = .rpg
+    var symbols: ThemeSymbols = .rpg
     
     // Palette: Charcoal, Crimson
     var backgroundGradient: LinearGradient {
@@ -129,7 +129,7 @@ struct RPGTheme_Fairy: ThemeProtocol {
     var fontName: String? = "Baskerville" 
     var headerFontName: String? = "Baskerville-SemiBold"
     
-    var emojis: ThemeEmojis = .fairy
+    var symbols: ThemeSymbols = .fairy
     
     // Palette: Ethereal - Pink/Purple/Teal
     var backgroundGradient: LinearGradient {
@@ -169,7 +169,7 @@ struct CyberpunkTheme_NeonCity: ThemeProtocol {
     // Typography: Mono / Tech
     var fontName: String? = "Courier New"
     var headerFontName: String? = "Courier New"
-    var emojis: ThemeEmojis = .cyberpunk
+    var symbols: ThemeSymbols = .cyberpunk
     
     // Palette: Pitch Black, Hot Pink, Cyan
     var backgroundGradient: LinearGradient {
@@ -207,7 +207,7 @@ struct CyberpunkTheme_Matrix: ThemeProtocol {
     
     var fontName: String? = "Courier New"
     var headerFontName: String? = "Courier New"
-    var emojis: ThemeEmojis = .cyberpunk
+    var symbols: ThemeSymbols = .cyberpunk
     
     // Palette: Digital Green
     var backgroundGradient: LinearGradient {
@@ -243,7 +243,7 @@ struct CleanTheme: ThemeProtocol {
     // Typography: System Default
     var fontName: String? = nil
     var headerFontName: String? = nil
-    var emojis: ThemeEmojis = .clean
+    var symbols: ThemeSymbols = .clean
     
     // Palette: System Adaptive
     var backgroundGradient: LinearGradient {
@@ -278,7 +278,7 @@ struct CleanTheme_Lilac: ThemeProtocol {
     // Typography: System Default (Clean)
     var fontName: String? = nil
     var headerFontName: String? = nil
-    var emojis: ThemeEmojis = .clean
+    var symbols: ThemeSymbols = .clean
     
     // Palette: White/Lilac Gradient for a stunning light/soft look, or dark lilac.
     // User likes "Stunning". Let's go for a rich, modern Dark Lilac.

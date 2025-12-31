@@ -89,8 +89,9 @@ struct DashboardView: View {
             // Streak Badge
             if let stats = viewModel.userStats, stats.currentStreak > 0 {
                 VStack(spacing: 2) {
-                    Text(themeManager.currentTheme.emojis.streak)
-                        .font(.system(size: 28))
+                    Image(systemName: themeManager.currentTheme.symbols.streak)
+                        .font(.system(size: 24))
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
 
                     Text("\(stats.currentStreak)")
                         .font(themeManager.currentTheme.font(for: .headline))
@@ -119,8 +120,9 @@ struct DashboardView: View {
         VStack(spacing: Spacing.sm) {
             HStack {
                 HStack(spacing: Spacing.xs) {
-                    Text(themeManager.currentTheme.emojis.check)
-                        .font(.system(size: 18))
+                    Image(systemName: themeManager.currentTheme.symbols.check)
+                        .font(.system(size: 16))
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
                     Text("Today's Progress")
                         .font(themeManager.currentTheme.font(for: .headline))
                         .foregroundColor(themeManager.currentTheme.textPrimary)
@@ -197,14 +199,14 @@ struct DashboardView: View {
             StatCard(
                 title: "Completed",
                 value: "\(viewModel.takenDoses)",
-                iconName: themeManager.currentTheme.emojis.check,
+                iconName: themeManager.currentTheme.symbols.check,
                 color: themeManager.currentTheme.successColor
             )
             
             StatCard(
                 title: "Pending",
                 value: "\(viewModel.pendingDoses)",
-                iconName: themeManager.currentTheme.emojis.uncheck,
+                iconName: themeManager.currentTheme.symbols.uncheck,
                 color: themeManager.currentTheme.accentColor
             )
             
@@ -338,8 +340,9 @@ struct DashboardView: View {
     @ViewBuilder
     private var emptyStateView: some View {
         VStack(spacing: Spacing.md) {
-            Text(themeManager.currentTheme.emojis.currency)
+            Image(systemName: themeManager.currentTheme.symbols.currency)
                 .font(.system(size: 64))
+                .foregroundColor(themeManager.currentTheme.primaryColor)
             
             Text("No rituals scheduled")
                 .font(themeManager.currentTheme.font(for: .headline))
@@ -351,8 +354,9 @@ struct DashboardView: View {
                 .multilineTextAlignment(.center)
 
             HStack {
-                Text(themeManager.currentTheme.emojis.streak)
+                Image(systemName: themeManager.currentTheme.symbols.streak)
                     .font(.system(size: 16))
+                    .foregroundColor(themeManager.currentTheme.primaryColor)
                 Text("Tap the floating button to add your first ritual")
             }
             .font(themeManager.currentTheme.font(for: .callout))
