@@ -39,6 +39,9 @@ struct StatCard: View {
         .background(
             RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
                 .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
                 .stroke(
                     LinearGradient(
                         colors: [.white.opacity(0.1), .white.opacity(0.02)],

@@ -14,6 +14,7 @@ import SwiftUI
 final class DashboardViewModel {
     private let modelContext: ModelContext
     private let gamificationManager: GamificationManager
+    private let doseLogGenerator: DoseLogGenerator
 
     // State
     var selectedDate: Date = Date()
@@ -50,9 +51,27 @@ final class DashboardViewModel {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.gamificationManager = GamificationManager(modelContext: modelContext)
+        self.doseLogGenerator = DoseLogGenerator(modelContext: modelContext)
 
+        ensureLogsExistForCurrentWeek()
         loadUserStats()
         loadDoseLogsForSelectedDate()
+    }
+    
+    func refresh() {
+        ensureLogsExistForCurrentWeek()
+        loadUserStats()
+        loadDoseLogsForSelectedDate()
+    }
+
+    // MARK: - Ensure Logs Exist
+    private func ensureLogsExistForCurrentWeek() {
+        let calendar = Calendar.current
+        let today = Date()
+        guard let weekStart = calendar.date(byAdding: .day, value: -3, to: today),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: today) else { return }
+
+        doseLogGenerator.ensureLogsExist(for: weekStart...weekEnd)
     }
 
     // MARK: - Data Loading
@@ -83,7 +102,16 @@ final class DashboardViewModel {
     // MARK: - Date Navigation
     func selectDate(_ date: Date) {
         selectedDate = date
+        ensureLogsExistForDate(date)
         loadDoseLogsForSelectedDate()
+    }
+
+    private func ensureLogsExistForDate(_ date: Date) {
+        let calendar = Calendar.current
+        guard let dayStart = calendar.date(byAdding: .day, value: -1, to: date),
+              let dayEnd = calendar.date(byAdding: .day, value: 1, to: date) else { return }
+
+        doseLogGenerator.ensureLogsExist(for: dayStart...dayEnd)
     }
 
     func goToPreviousDay() {
@@ -108,6 +136,7 @@ final class DashboardViewModel {
         case .pending:
             markDoseAsTaken(doseLog)
         case .taken:
+            // Allow untaking but don't refund XP (prevents exploits)
             markDoseAsPending(doseLog)
         case .skipped:
             markDoseAsTaken(doseLog)
@@ -120,15 +149,19 @@ final class DashboardViewModel {
     }
 
     private func markDoseAsTaken(_ doseLog: DoseLog) {
-        gamificationManager.recordDoseTaken(for: doseLog)
+        // Only award XP if not already taken (prevent XP farming)
+        if !doseLog.isTaken {
+            gamificationManager.recordDoseTaken(for: doseLog)
 
-        // Check if day is complete and update streak
-        if isAllComplete {
-            gamificationManager.updateDailyStreak(for: selectedDate)
+            // Check if day is complete and update streak
+            if isAllComplete {
+                gamificationManager.updateDailyStreak(for: selectedDate)
+            }
         }
     }
 
     private func markDoseAsPending(_ doseLog: DoseLog) {
+        // Allow untaking but XP is not refunded
         doseLog.status = .pending
         doseLog.takenTime = nil
         try? modelContext.save()
@@ -203,5 +236,6 @@ final class DashboardViewModel {
 enum CompletionStatus {
     case complete
     case partial
+    case missed
     case none
 }

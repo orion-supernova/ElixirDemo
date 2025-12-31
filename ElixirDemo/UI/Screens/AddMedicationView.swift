@@ -12,8 +12,9 @@ struct AddMedicationView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var viewModel: AddMedicationViewModel?
+    @State private var showSuccessAlert = false
     
     var body: some View {
         ZStack {
@@ -34,6 +35,13 @@ struct AddMedicationView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel?.errorMessage ?? "")
+        }
+        .alert("Success!", isPresented: $showSuccessAlert) {
+            Button("Done") {
+                dismiss()
+            }
+        } message: {
+            Text("Your ritual has been added successfully!")
         }
         .onAppear {
             if viewModel == nil {
@@ -142,8 +150,38 @@ struct AddMedicationView: View {
                         .font(themeManager.currentTheme.font(for: .subheadline))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
 
-                    TextField("e.g., 1000 IU", text: $vm.dosage)
-                        .textFieldStyle(ElixirTextFieldStyle())
+                    HStack(spacing: Spacing.sm) {
+                        TextField("Amount", text: $vm.dosageAmount)
+                            .textFieldStyle(ElixirTextFieldStyle())
+                            .keyboardType(.decimalPad)
+                            .frame(maxWidth: .infinity)
+
+                        Menu {
+                            ForEach(AddMedicationViewModel.dosageUnits, id: \.self) { unit in
+                                Button(unit) {
+                                    vm.dosageUnit = unit
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(vm.dosageUnit)
+                                    .font(themeManager.currentTheme.font(for: .body))
+                                    .foregroundColor(themeManager.currentTheme.textPrimary)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                            }
+                            .padding(Spacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(themeManager.currentTheme.primaryColor.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                    }
                 }
 
                 // Start Date
@@ -562,7 +600,12 @@ struct AddMedicationView: View {
     private func saveButton(viewModel: AddMedicationViewModel) -> some View {
         Button(action: {
             if viewModel.saveMedication() {
-                dismiss()
+                // Haptic feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+
+                // Show success alert
+                showSuccessAlert = true
             }
         }) {
             HStack(spacing: Spacing.sm) {

@@ -16,7 +16,8 @@ final class AddMedicationViewModel {
 
     // Form Fields
     var medicationName: String = ""
-    var dosage: String = ""
+    var dosageAmount: String = ""
+    var dosageUnit: String = "mg"
     var selectedIcon: String = "pills.fill"
     var selectedColor: String = "A78BFA"
     var selectedFrequency: Frequency = .daily
@@ -29,6 +30,9 @@ final class AddMedicationViewModel {
     var startDayOffset: Int = 0 // 0 = today, 1 = tomorrow (for Every Other Day)
     var selectedWeekday: Int = Calendar.current.component(.weekday, from: Date()) // 1=Sunday, 7=Saturday (for Weekly)
     var selectedWeekdays: Set<Int> = [] // For Specific Days (1=Sunday, 7=Saturday)
+
+    // Dosage units
+    static let dosageUnits = ["mg", "g", "mcg", "ml", "L", "tbsp", "tsp", "drops", "pill(s)", "IU", "capsule(s)", "spray(s)", "puff(s)"]
 
     // Validation
     var showError: Bool = false
@@ -54,8 +58,8 @@ final class AddMedicationViewModel {
             return false
         }
 
-        if dosage.trimmingCharacters(in: .whitespaces).isEmpty {
-            errorMessage = "Please enter a dosage"
+        if dosageAmount.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "Please enter a dosage amount"
             showError = true
             return false
         }
@@ -81,9 +85,12 @@ final class AddMedicationViewModel {
     func saveMedication() -> Bool {
         guard validate() else { return false }
 
+        // Combine dosage amount and unit
+        let combinedDosage = "\(dosageAmount) \(dosageUnit)"
+
         let medication = Medication(
             name: medicationName,
-            dosage: dosage,
+            dosage: combinedDosage,
             iconName: selectedIcon,
             colorHex: selectedColor,
             frequency: selectedFrequency,
@@ -94,9 +101,8 @@ final class AddMedicationViewModel {
 
         modelContext.insert(medication)
 
-        // Create dose logs for today and future dates
-        createInitialDoseLogs(for: medication)
-
+        // Logs will be generated on-demand by Dashboard/Calendar
+        
         do {
             try modelContext.save()
             return true
@@ -107,31 +113,7 @@ final class AddMedicationViewModel {
         }
     }
 
-    // MARK: - Create Initial Dose Logs
-    private func createInitialDoseLogs(for medication: Medication) {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
 
-        // Create dose logs for next 7 days
-        for dayOffset in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
-
-            for scheduledTime in medication.scheduledTimes {
-                let components = calendar.dateComponents([.hour, .minute], from: scheduledTime)
-                guard let doseTime = calendar.date(bySettingHour: components.hour ?? 0,
-                                                   minute: components.minute ?? 0,
-                                                   second: 0,
-                                                   of: date) else { continue }
-
-                let doseLog = DoseLog(
-                    scheduledTime: doseTime,
-                    medication: medication,
-                    status: .pending
-                )
-                modelContext.insert(doseLog)
-            }
-        }
-    }
 
     // MARK: - Time Management
     func addScheduledTime() {

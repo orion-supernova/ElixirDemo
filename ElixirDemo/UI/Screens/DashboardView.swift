@@ -25,13 +25,16 @@ struct DashboardView: View {
                         VStack(spacing: Spacing.xl) {
                             // Header Section
                             headerSection(viewModel: viewModel)
-                            
-                            // Progress Orb
-                            progressOrbSection(viewModel: viewModel)
-                            
+
+                            // Today's Progress
+                            todayProgressSection(viewModel: viewModel)
+
                             // Stats Summary
                             statsSummary(viewModel: viewModel)
-                            
+
+                            // Weekly Overview
+                            weeklyOverviewSection()
+
                             // Dose List
                             doseListSection(viewModel: viewModel)
                         }
@@ -48,6 +51,8 @@ struct DashboardView: View {
         .onAppear {
             if viewModel == nil {
                 viewModel = DashboardViewModel(modelContext: modelContext)
+            } else {
+                viewModel?.refresh()
             }
         }
     }
@@ -60,17 +65,10 @@ struct DashboardView: View {
                 Text(greetingText)
                     .font(themeManager.currentTheme.font(for: .title2))
                     .foregroundColor(themeManager.currentTheme.textPrimary)
-                
-                if let stats = viewModel.userStats {
-                    HStack(spacing: Spacing.sm) {
-                        Text(themeManager.currentTheme.emojis.level)
-                            .font(.system(size: 12))
-                        
-                        Text("Level \(stats.currentLevel) • \(stats.currentTitle)")
-                            .font(themeManager.currentTheme.font(for: .subheadline))
-                            .foregroundColor(themeManager.currentTheme.textSecondary)
-                    }
-                }
+
+                Text("Track your daily rituals")
+                    .font(themeManager.currentTheme.font(for: .subheadline))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
             }
             
             Spacer()
@@ -78,20 +76,13 @@ struct DashboardView: View {
             // Streak Badge
             if let stats = viewModel.userStats, stats.currentStreak > 0 {
                 VStack(spacing: 2) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [themeManager.currentTheme.errorColor, themeManager.currentTheme.accentColor],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    
+                    Text(themeManager.currentTheme.emojis.streak)
+                        .font(.system(size: 28))
+
                     Text("\(stats.currentStreak)")
                         .font(themeManager.currentTheme.font(for: .headline))
                         .foregroundColor(themeManager.currentTheme.textPrimary)
-                    
+
                     Text("Streak")
                         .font(themeManager.currentTheme.font(for: .caption))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
@@ -100,12 +91,69 @@ struct DashboardView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(.ultraThinMaterial)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
             }
         }
     }
-    
+
+    // MARK: - Today's Progress Section
+    @ViewBuilder
+    private func todayProgressSection(viewModel: DashboardViewModel) -> some View {
+        VStack(spacing: Spacing.sm) {
+            HStack {
+                HStack(spacing: Spacing.xs) {
+                    Text(themeManager.currentTheme.emojis.check)
+                        .font(.system(size: 18))
+                    Text("Today's Progress")
+                        .font(themeManager.currentTheme.font(for: .headline))
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                }
+
+                Spacer()
+
+                Text("\(viewModel.takenDoses) / \(viewModel.totalDoses)")
+                    .font(themeManager.currentTheme.font(for: .caption))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+            }
+
+            // Today's Progress Bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.1))
+                        .frame(height: 12)
+
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    themeManager.currentTheme.primaryColor,
+                                    themeManager.currentTheme.successColor
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * viewModel.todayProgress, height: 12)
+                }
+            }
+            .frame(height: 12)
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(themeManager.currentTheme.primaryColor.opacity(0.2), lineWidth: 1)
+        )
+    }
+
     // MARK: - Progress Orb Section
     @ViewBuilder
     private func progressOrbSection(viewModel: DashboardViewModel) -> some View {
@@ -156,13 +204,93 @@ struct DashboardView: View {
         }
     }
     
+    // MARK: - Weekly Overview Section
+    @ViewBuilder
+    private func weeklyOverviewSection() -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                Text("This Week")
+                    .font(themeManager.currentTheme.font(for: .headline))
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
+
+                Spacer()
+
+                NavigationLink(destination: HistoryView()) {
+                    HStack(spacing: Spacing.xs) {
+                        Text("Calendar")
+                            .font(themeManager.currentTheme.font(for: .caption))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                }
+            }
+
+            HStack(spacing: Spacing.sm) {
+                ForEach(0..<7) { dayOffset in
+                    let date = Calendar.current.date(byAdding: .day, value: -6 + dayOffset, to: Date()) ?? Date()
+                    let isToday = Calendar.current.isDateInToday(date)
+                    let dayName = dayName(for: date)
+
+                    VStack(spacing: Spacing.xs) {
+                        Text(dayName)
+                            .font(themeManager.currentTheme.font(for: .caption2))
+                            .foregroundColor(isToday ? themeManager.currentTheme.primaryColor : themeManager.currentTheme.textSecondary)
+
+                        Circle()
+                            .fill(isToday ?
+                                  themeManager.currentTheme.primaryColor :
+                                    Color.white.opacity(0.2))
+                            .frame(width: 36, height: 36)
+                            .overlay(
+                                Text("\(Calendar.current.component(.day, from: date))")
+                                    .font(themeManager.currentTheme.font(for: .caption))
+                                    .foregroundColor(isToday ? .white : themeManager.currentTheme.textPrimary)
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    // Helper to get day name
+    private func dayName(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+
     // MARK: - Dose List Section
     @ViewBuilder
     private func doseListSection(viewModel: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Today's Rituals")
-                .font(themeManager.currentTheme.font(for: .title3))
-                .foregroundColor(themeManager.currentTheme.textPrimary)
+            HStack {
+                Text("Today's Rituals")
+                    .font(themeManager.currentTheme.font(for: .title3))
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
+
+                Spacer()
+
+                NavigationLink(destination: MedicationsListView()) {
+                    HStack(spacing: Spacing.xs) {
+                        Text("View All")
+                            .font(themeManager.currentTheme.font(for: .caption))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                }
+            }
             
             if viewModel.doseLogs.isEmpty {
                 emptyStateView
@@ -174,6 +302,12 @@ struct DashboardView: View {
                             doseLog: doseLog,
                             onCheckmarkTapped: {
                                 viewModel.toggleDoseStatus(for: doseLog)
+                            },
+                            onMarkMissed: {
+                                viewModel.markDoseAsMissed(doseLog)
+                            },
+                            onMarkSkipped: {
+                                viewModel.markDoseAsSkipped(doseLog)
                             }
                         )
                     }
@@ -186,9 +320,8 @@ struct DashboardView: View {
     @ViewBuilder
     private var emptyStateView: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 48))
-                .foregroundStyle(themeManager.currentTheme.primaryGradient)
+            Text(themeManager.currentTheme.emojis.currency)
+                .font(.system(size: 64))
             
             Text("No rituals scheduled")
                 .font(themeManager.currentTheme.font(for: .headline))
@@ -198,10 +331,11 @@ struct DashboardView: View {
                 .font(themeManager.currentTheme.font(for: .callout))
                 .foregroundColor(themeManager.currentTheme.textSecondary)
                 .multilineTextAlignment(.center)
-            
+
             HStack {
-                Image(systemName: "plus.circle.fill")
-                Text("Use the menu below to add your first ritual")
+                Text(themeManager.currentTheme.emojis.streak)
+                    .font(.system(size: 16))
+                Text("Tap the floating button to add your first ritual")
             }
             .font(themeManager.currentTheme.font(for: .callout))
             .foregroundColor(themeManager.currentTheme.textSecondary)
