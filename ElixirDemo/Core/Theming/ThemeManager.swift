@@ -67,6 +67,8 @@ final class ThemeManager {
                 selectedCategory = theme.category
             }
             UserDefaults.standard.set(id, forKey: userDefaultsKey)
+            
+            NotificationCenter.default.post(name: .themeChanged, object: nil)
         }
     }
     

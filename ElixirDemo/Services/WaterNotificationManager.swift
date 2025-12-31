@@ -5,8 +5,13 @@
 //  Handles scheduling and managing recurring water intake reminders.
 //
 
-import Foundation
+import SwiftUI
 import UserNotifications
+import SwiftData
+
+extension Notification.Name {
+    static let themeChanged = Notification.Name("com.elixir.themeChanged")
+}
 
 final class WaterNotificationManager {
     static let shared = WaterNotificationManager()
@@ -14,24 +19,57 @@ final class WaterNotificationManager {
     private let notificationCenter = UNUserNotificationCenter.current()
     private let categoryIdentifier = "WATER_REMINDER"
     
-    private init() {}
+    private init() {
+        setupObservers()
+    }
     
-    /// Schedules recurring water reminders based on frequency
-    func scheduleWaterReminders(frequencyHours: Int) {
+    private func setupObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleThemeChange),
+            name: .themeChanged,
+            object: nil
+        )
+    }
+    
+    @objc private func handleThemeChange() {
+        // Refresh reminders to use new theme message
+        Task { @MainActor in
+            refreshFromSettings()
+        }
+    }
+    
+    /// Fetches the latest WaterSettings and reschedules reminders
+    func refreshFromSettings() {
+        let descriptor = FetchDescriptor<WaterSettings>()
+        let context = DataController.shared.container.mainContext
+        
+        guard let settings = try? context.fetch(descriptor).first,
+              settings.remindersEnabled else {
+            return
+        }
+        
+        scheduleWaterReminders(
+            frequencyHours: settings.frequencyHours,
+            startHour: settings.activeStartHour,
+            endHour: settings.activeEndHour
+        )
+    }
+    
+    /// Schedules recurring water reminders based on frequency and user intervals
+    func scheduleWaterReminders(frequencyHours: Int, startHour: Int = 8, endHour: Int = 22) {
         // First cancel any existing water reminders
         cancelAllWaterReminders()
         
         guard frequencyHours > 0 else { return }
         
+        let theme = ThemeManager.shared.currentTheme
+        
         let content = UNMutableNotificationContent()
         content.title = "Time for Elixir 💧"
-        content.body = "Stay hydrated, Ritual Master! A quick glass of water keeps your energy flowing."
+        content.body = theme.notificationMessage
         content.sound = .default
         content.categoryIdentifier = categoryIdentifier
-        
-        // Schedule reminders roughly between 8 AM and 10 PM
-        let startHour = 8
-        let endHour = 22
         
         var currentHour = startHour
         var count = 0

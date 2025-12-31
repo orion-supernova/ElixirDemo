@@ -20,9 +20,14 @@ final class Medication {
 
     // Scheduling
     var frequency: Frequency
-    var scheduledTimes: [Date] = []
+    var scheduledTimesBlob: Data = Data()
     var startDate: Date
     var endDate: Date? // Optional for ongoing medications
+
+    @Transient var scheduledTimes: [Date] {
+        get { (try? JSONDecoder().decode([Date].self, from: scheduledTimesBlob)) ?? [] }
+        set { scheduledTimesBlob = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
 
     // Relationships
     @Relationship(deleteRule: .cascade, inverse: \DoseLog.medication)
@@ -53,7 +58,7 @@ final class Medication {
         self.iconName = iconName
         self.colorHex = colorHex
         self.frequency = frequency
-        self.scheduledTimes = scheduledTimes
+        self.scheduledTimesBlob = (try? JSONEncoder().encode(scheduledTimes)) ?? Data()
         self.startDate = startDate
         self.endDate = endDate
         self.createdAt = Date()
@@ -182,8 +187,13 @@ final class UserStats {
     var totalDosesTaken: Int
     var totalDosesSkipped: Int
     var totalDosesMissed: Int
-    var achievementBadges: [String] = []
+    var achievementBadgesBlob: Data = Data()
     var lastUpdated: Date
+
+    @Transient var achievementBadges: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: achievementBadgesBlob)) ?? [] }
+        set { achievementBadgesBlob = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
 
     // Computed Properties
     var xpToNextLevel: Int {
@@ -225,7 +235,7 @@ final class UserStats {
         self.totalDosesTaken = 0
         self.totalDosesSkipped = 0
         self.totalDosesMissed = 0
-        self.achievementBadges = []
+        self.achievementBadgesBlob = (try? JSONEncoder().encode([String]())) ?? Data()
         self.lastUpdated = Date()
     }
 
@@ -371,9 +381,13 @@ final class WaterSettings {
     var remindersEnabled: Bool
     var frequencyHours: Int // e.g., 1, 2, 4, 6
     var dailyGoalLiters: Double
-    var showStatsOnDashboard: Bool
     var dashboardMode: DashboardMode? // Optional for safe migration
+    var startHour: Int? // Optional for safe migration
+    var endHour: Int?   // Optional for safe migration
     var lastUpdated: Date
+
+    var activeStartHour: Int { startHour ?? 8 }
+    var activeEndHour: Int { endHour ?? 22 }
 
     var activeDashboardMode: DashboardMode {
         dashboardMode ?? .both
@@ -383,15 +397,17 @@ final class WaterSettings {
         remindersEnabled: Bool = false,
         frequencyHours: Int = 2,
         dailyGoalLiters: Double = 2.0,
-        showStatsOnDashboard: Bool = true,
-        dashboardMode: DashboardMode = .both
+        dashboardMode: DashboardMode = .both,
+        startHour: Int = 8,
+        endHour: Int = 22
     ) {
         self.id = UUID()
         self.remindersEnabled = remindersEnabled
         self.frequencyHours = frequencyHours
         self.dailyGoalLiters = dailyGoalLiters
-        self.showStatsOnDashboard = showStatsOnDashboard
         self.dashboardMode = dashboardMode
+        self.startHour = startHour
+        self.endHour = endHour
         self.lastUpdated = Date()
     }
 }

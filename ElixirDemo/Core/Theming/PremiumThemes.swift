@@ -49,6 +49,7 @@ struct RPGTheme_Paladin: ThemeProtocol {
     var errorColor: Color = Color(hex: "EF4444") // Red
     
     var cornerRadius: CGFloat = 16
+    var notificationMessage: String { "Focus on your ritual, Paladin. A glass of water is clarity for the mind. 🛡️💧" }
 }
 
 struct RPGTheme_Necromancer: ThemeProtocol {
@@ -83,6 +84,7 @@ struct RPGTheme_Necromancer: ThemeProtocol {
     var errorColor: Color = Color(hex: "DC2626")
     
     var cornerRadius: CGFloat = 12
+    var notificationMessage: String { "The dark path requires focus. Hydrate your vessel, Necromancer. 💀💧" }
 }
 
 struct RPGTheme_BloodMage: ThemeProtocol {
@@ -117,6 +119,7 @@ struct RPGTheme_BloodMage: ThemeProtocol {
     var errorColor: Color = Color(hex: "991B1B") // Deep Red
     
     var cornerRadius: CGFloat = 20
+    var notificationMessage: String { "Blood requires balance. A vital ritual: drink water, Mage. 🩸💧" }
 }
 
 struct RPGTheme_Fairy: ThemeProtocol {
@@ -157,6 +160,7 @@ struct RPGTheme_Fairy: ThemeProtocol {
     var errorColor: Color = Color(hex: "fb7185")
     
     var cornerRadius: CGFloat = 24 // Very Round
+    var notificationMessage: String { "Gentle reminder: a sip of water is a gift to your body, Fae. 🌸💧" }
 }
 
 // MARK: - CYBERPUNK THEMES
@@ -197,6 +201,7 @@ struct CyberpunkTheme_NeonCity: ThemeProtocol {
     var errorColor: Color = Color(hex: "FF0000") // Pure Red
     
     var cornerRadius: CGFloat = 4 // Sharp aesthetic
+    var notificationMessage: String { "Neural links stable. Critical update: Hydrate your hardware. ⚡💧" }
 }
 
 struct CyberpunkTheme_Matrix: ThemeProtocol {
@@ -231,6 +236,7 @@ struct CyberpunkTheme_Matrix: ThemeProtocol {
     var errorColor: Color = Color(hex: "FF0000")
     
     var cornerRadius: CGFloat = 0 // Very Boxy
+    var notificationMessage: String { "The Construct demands precision. Initializing hydration protocol. 💹💧" }
 }
 
 // MARK: - CLEAN THEMES
@@ -267,6 +273,7 @@ struct CleanTheme: ThemeProtocol {
     var errorColor: Color = Color.red
     
     var cornerRadius: CGFloat = 10 // Apple Standard curve
+    var notificationMessage: String { "Stay hydrated. A healthy ritual for a balanced day. 💧" }
 }
 
 struct CleanTheme_Lilac: ThemeProtocol {
@@ -307,4 +314,5 @@ struct CleanTheme_Lilac: ThemeProtocol {
     var errorColor: Color = Color(hex: "fb7185")
     
     var cornerRadius: CGFloat = 16
+    var notificationMessage: String { "Dreaming of clarity? A refreshing sip of water awaits. 💜💧" }
 }

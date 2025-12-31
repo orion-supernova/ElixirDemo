@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+typealias UserFont = Font.TextStyle
+
 // MARK: - Theme Category Hierarchy
 enum ThemeCategory: String, CaseIterable, Identifiable, Codable {
     case rpg = "RPG"
@@ -104,6 +106,7 @@ protocol ThemeProtocol: Identifiable {
     
     // MARK: Colors - Palette
     var backgroundGradient: LinearGradient { get }
+    var notificationMessage: String { get }
     
     var primaryColor: Color { get }
     var secondaryColor: Color { get }
@@ -125,7 +128,7 @@ protocol ThemeProtocol: Identifiable {
     var primaryGradient: LinearGradient { get }
     
     // MARK: Helper for Fonts
-    func font(for style: Font.TextStyle) -> Font
+    func font(for style: UserFont) -> Font
 }
 
 // MARK: - Default Implementation
@@ -139,8 +142,13 @@ extension ThemeProtocol {
         )
     }
     
+    var backgroundGradient: LinearGradient {
+        LinearGradient(colors: [Color(hex: "0F172A"), Color(hex: "1E293B")], startPoint: .top, endPoint: .bottom)
+    }
+    var notificationMessage: String { "Focus on your ritual. A glass of water is clarity for the mind. 💧" }
+    
     // Dynamic Font Loader
-    func font(for style: Font.TextStyle) -> Font {
+    func font(for style: UserFont) -> Font {
         // Size mapping for standard styles
         let size: CGFloat
         switch style {
