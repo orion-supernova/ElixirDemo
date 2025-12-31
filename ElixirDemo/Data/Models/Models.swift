@@ -20,7 +20,7 @@ final class Medication {
 
     // Scheduling
     var frequency: Frequency
-    var scheduledTimes: [Date] // Array of daily times (hour/minute only)
+    var scheduledTimes: [Date] = []
     var startDate: Date
     var endDate: Date? // Optional for ongoing medications
 
@@ -182,7 +182,7 @@ final class UserStats {
     var totalDosesTaken: Int
     var totalDosesSkipped: Int
     var totalDosesMissed: Int
-    var achievementBadges: [String] // Array of achievement IDs
+    var achievementBadges: [String] = []
     var lastUpdated: Date
 
     // Computed Properties
@@ -344,5 +344,87 @@ extension UserStats {
         stats.totalDosesSkipped = 3
         stats.totalDosesMissed = 2
         return stats
+    }
+}
+
+// MARK: - Dashboard Mode Enum
+enum DashboardMode: String, Codable, CaseIterable, Identifiable {
+    case both = "Both"
+    case medicationOnly = "Medication Only"
+    case waterOnly = "Water Only"
+    
+    var id: String { self.rawValue }
+    
+    var icon: String {
+        switch self {
+        case .both: return "square.grid.2x2.fill"
+        case .medicationOnly: return "pills.fill"
+        case .waterOnly: return "drop.fill"
+        }
+    }
+}
+
+// MARK: - WaterSettings Model
+@Model
+final class WaterSettings {
+    var id: UUID
+    var remindersEnabled: Bool
+    var frequencyHours: Int // e.g., 1, 2, 4, 6
+    var dailyGoalLiters: Double
+    var showStatsOnDashboard: Bool
+    var dashboardMode: DashboardMode? // Optional for safe migration
+    var lastUpdated: Date
+
+    var activeDashboardMode: DashboardMode {
+        dashboardMode ?? .both
+    }
+
+    init(
+        remindersEnabled: Bool = false,
+        frequencyHours: Int = 2,
+        dailyGoalLiters: Double = 2.0,
+        showStatsOnDashboard: Bool = true,
+        dashboardMode: DashboardMode = .both
+    ) {
+        self.id = UUID()
+        self.remindersEnabled = remindersEnabled
+        self.frequencyHours = frequencyHours
+        self.dailyGoalLiters = dailyGoalLiters
+        self.showStatsOnDashboard = showStatsOnDashboard
+        self.dashboardMode = dashboardMode
+        self.lastUpdated = Date()
+    }
+}
+
+// MARK: - WaterEntry Model
+@Model
+final class WaterEntry {
+    var id: UUID
+    var amountLiters: Double
+    var date: Date
+
+    init(amountLiters: Double, date: Date = Date()) {
+        self.id = UUID()
+        self.amountLiters = amountLiters
+        self.date = date
+    }
+}
+
+// MARK: - Water Preview Helpers
+extension WaterSettings {
+    static var preview: WaterSettings {
+        WaterSettings(remindersEnabled: true, frequencyHours: 2, dailyGoalLiters: 2.0)
+    }
+}
+
+extension WaterEntry {
+    static var previews: [WaterEntry] {
+        let calendar = Calendar.current
+        let today = Date()
+        return [
+            WaterEntry(amountLiters: 0.25, date: calendar.date(byAdding: .hour, value: -4, to: today)!),
+            WaterEntry(amountLiters: 0.5, date: calendar.date(byAdding: .hour, value: -2, to: today)!),
+            WaterEntry(amountLiters: 0.25, date: today)
+        ]
     }
 }

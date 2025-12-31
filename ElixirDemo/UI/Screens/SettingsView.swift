@@ -18,6 +18,8 @@ struct SettingsView: View {
     // For hierarchy selection
     @State private var selectedCategoryForDisplay: ThemeCategory = .rpg
     
+    @Query private var waterSettings: [WaterSettings]
+    
     var body: some View {
         ZStack {
             // Background
@@ -33,6 +35,12 @@ struct SettingsView: View {
                     if let stats = userStats {
                         profileSection(stats: stats)
                     }
+                    
+                    // Hydration
+                    hydrationSection
+                    
+                    // Dashboard Display
+                    dashboardDisplaySection
                     
                     // Themes Hierarchy
                     themeHierarchySection
@@ -110,6 +118,136 @@ struct SettingsView: View {
                     icon: themeManager.currentTheme.symbols.check,
                     color: themeManager.currentTheme.successColor
                 )
+            }
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
+                    .fill(themeManager.currentTheme.surfaceColor)
+                    .stroke(themeManager.currentTheme.primaryColor.opacity(0.1), lineWidth: 1)
+            )
+        }
+    }
+    
+    // MARK: - Hydration Section
+    private var hydrationSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Hydration")
+                .font(themeManager.currentTheme.font(for: .headline))
+                .foregroundColor(themeManager.currentTheme.textPrimary)
+            
+            VStack(spacing: Spacing.md) {
+                let settings = waterSettings.first ?? WaterSettings()
+                
+                Toggle(isOn: Binding(
+                    get: { settings.remindersEnabled },
+                    set: { newValue in
+                        settings.remindersEnabled = newValue
+                        if newValue {
+                            WaterNotificationManager.shared.scheduleWaterReminders(frequencyHours: settings.frequencyHours)
+                        } else {
+                            WaterNotificationManager.shared.cancelAllWaterReminders()
+                        }
+                        try? modelContext.save()
+                    }
+                )) {
+                    HStack {
+                        Image(systemName: "water.waves")
+                            .foregroundColor(themeManager.currentTheme.primaryColor)
+                        Text("Water Reminders")
+                            .font(themeManager.currentTheme.font(for: .body))
+                    }
+                }
+                .tint(themeManager.currentTheme.primaryColor)
+                
+                if settings.remindersEnabled {
+                    Divider().background(Color.white.opacity(0.1))
+                    
+                    HStack {
+                        Text("Frequency")
+                            .font(themeManager.currentTheme.font(for: .subheadline))
+                            .foregroundColor(themeManager.currentTheme.textSecondary)
+                        
+                        Spacer()
+                        
+                        Picker("Frequency", selection: Binding(
+                            get: { settings.frequencyHours },
+                            set: { newValue in
+                                settings.frequencyHours = newValue
+                                WaterNotificationManager.shared.scheduleWaterReminders(frequencyHours: newValue)
+                                try? modelContext.save()
+                            }
+                        )) {
+                            Text("1h").tag(1)
+                            Text("2h").tag(2)
+                            Text("4h").tag(4)
+                            Text("6h").tag(6)
+                        }
+                        .pickerStyle(.menu)
+                        .tint(themeManager.currentTheme.primaryColor)
+                    }
+                    
+                    Divider().background(Color.white.opacity(0.1))
+                    
+                    Toggle("Show Stats on Dashboard", isOn: Binding(
+                        get: { settings.showStatsOnDashboard },
+                        set: { newValue in
+                            settings.showStatsOnDashboard = newValue
+                            try? modelContext.save()
+                        }
+                    ))
+                    .tint(themeManager.currentTheme.primaryColor)
+                    .font(themeManager.currentTheme.font(for: .subheadline))
+                }
+            }
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: themeManager.currentTheme.cornerRadius)
+                    .fill(themeManager.currentTheme.surfaceColor)
+                    .stroke(themeManager.currentTheme.primaryColor.opacity(0.1), lineWidth: 1)
+            )
+        }
+        .onAppear {
+            if waterSettings.isEmpty {
+                let initial = WaterSettings()
+                modelContext.insert(initial)
+                try? modelContext.save()
+            }
+        }
+    }
+    
+    // MARK: - Dashboard Display Section
+    private var dashboardDisplaySection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Dashboard Rituals")
+                .font(themeManager.currentTheme.font(for: .headline))
+                .foregroundColor(themeManager.currentTheme.textPrimary)
+            
+            VStack(spacing: Spacing.md) {
+                let settings = waterSettings.first ?? WaterSettings()
+                
+                HStack {
+                    Image(systemName: settings.activeDashboardMode.icon)
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
+                    
+                    Text("Display Mode")
+                        .font(themeManager.currentTheme.font(for: .body))
+                    
+                    Spacer()
+                    
+                    Picker("Display Mode", selection: Binding(
+                        get: { settings.activeDashboardMode },
+                        set: { newValue in
+                            settings.dashboardMode = newValue
+                            try? modelContext.save()
+                        }
+                    )) {
+                        ForEach(DashboardMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(themeManager.currentTheme.primaryColor)
+                }
             }
             .padding(Spacing.md)
             .background(

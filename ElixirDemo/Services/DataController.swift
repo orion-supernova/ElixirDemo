@@ -18,7 +18,9 @@ final class DataController {
         let schema = Schema([
             Medication.self,
             DoseLog.self,
-            UserStats.self
+            UserStats.self,
+            WaterSettings.self,
+            WaterEntry.self
         ])
 
         let modelConfiguration = ModelConfiguration(
@@ -42,7 +44,9 @@ final class DataController {
         let schema = Schema([
             Medication.self,
             DoseLog.self,
-            UserStats.self
+            UserStats.self,
+            WaterSettings.self,
+            WaterEntry.self
         ])
 
         let modelConfiguration = ModelConfiguration(

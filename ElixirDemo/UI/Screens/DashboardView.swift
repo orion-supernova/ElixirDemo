@@ -14,6 +14,10 @@ struct DashboardView: View {
     @State private var viewModel: DashboardViewModel?
     @State private var doseLogToDelete: DoseLog?
     @State private var showDeleteConfirmation = false
+    @State private var showingWaterTracking = false
+    
+    @Query private var waterEntries: [WaterEntry]
+    @Query private var waterSettings: [WaterSettings]
     
     var body: some View {
         ZStack {
@@ -25,20 +29,29 @@ struct DashboardView: View {
                 ZStack(alignment: .bottomTrailing) {
                     ScrollView {
                         VStack(spacing: Spacing.xl) {
+                            let mode = waterSettings.first?.activeDashboardMode ?? .both
+                            
                             // Header Section
                             headerSection(viewModel: viewModel)
 
-                            // Today's Progress
-                            todayProgressSection(viewModel: viewModel)
+                            if mode == .both || mode == .waterOnly {
+                                // Water Stats
+                                waterStatsSection
+                            }
 
-                            // Stats Summary
-                            statsSummary(viewModel: viewModel)
+                            if mode == .both || mode == .medicationOnly {
+                                // Medication Progress
+                                todayProgressSection(viewModel: viewModel)
 
-                            // Weekly Overview
-                            weeklyOverviewSection()
+                                // Stats Summary
+                                statsSummary(viewModel: viewModel)
 
-                            // Dose List
-                            doseListSection(viewModel: viewModel)
+                                // Weekly Overview
+                                weeklyOverviewSection()
+
+                                // Dose List
+                                doseListSection(viewModel: viewModel)
+                            }
                         }
                         .padding(.horizontal, Spacing.md)
                         .padding(.top, Spacing.md)
@@ -86,33 +99,113 @@ struct DashboardView: View {
             
             Spacer()
             
-            // Streak Badge
-            if let stats = viewModel.userStats, stats.currentStreak > 0 {
+            // Streak Badge (Water Streak)
+            Button(action: {
+                showingWaterTracking = true
+            }) {
                 VStack(spacing: 2) {
-                    Image(systemName: themeManager.currentTheme.symbols.streak)
+                    Image(systemName: "water.waves")
                         .font(.system(size: 24))
                         .foregroundColor(themeManager.currentTheme.primaryColor)
 
-                    Text("\(stats.currentStreak)")
+                    Text("\(calculateWaterStreak())")
                         .font(themeManager.currentTheme.font(for: .headline))
                         .foregroundColor(themeManager.currentTheme.textPrimary)
 
                     Text("Streak")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                        .font(themeManager.currentTheme.font(for: .caption2))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                 }
-                .padding(Spacing.sm)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(.ultraThinMaterial)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .fill(themeManager.currentTheme.surfaceColor)
+                        .stroke(themeManager.currentTheme.primaryColor.opacity(0.2), lineWidth: 1)
                 )
             }
         }
+        .fullScreenCover(isPresented: $showingWaterTracking) {
+            NavigationStack {
+                WaterTrackingView()
+            }
+        }
     }
+    
+    private var waterStatsSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Text("Hydration State")
+                    .font(themeManager.currentTheme.font(for: .headline))
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
+                
+                Spacer()
+                
+                let total = waterEntries.filter { Calendar.current.isDateInToday($0.date) }.reduce(0.0) { $0 + $1.amountLiters }
+                let goal = waterSettings.first?.dailyGoalLiters ?? 2.0
+                Text("\(Int(total * 1000))ml / \(Int(goal * 1000))ml")
+                    .font(themeManager.currentTheme.font(for: .caption))
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+            }
+            .padding(.horizontal, Spacing.xs)
+
+            HStack(spacing: Spacing.md) {
+                let totalToday = waterEntries.filter { Calendar.current.isDateInToday($0.date) }.reduce(0.0) { $0 + $1.amountLiters }
+                let goal = waterSettings.first?.dailyGoalLiters ?? 2.0
+                let progress = min(totalToday / goal, 1.0)
+                
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.1))
+                        
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.7), Color.cyan.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geo.size.width * progress)
+                    }
+                }
+                .frame(height: 12)
+            }
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+    
+    private func calculateWaterStreak() -> Int {
+        let calendar = Calendar.current
+        let groupedEntries = Dictionary(grouping: waterEntries) { entry in
+            calendar.startOfDay(for: entry.date)
+        }
+        
+        var streak = 0
+        var checkDate = calendar.startOfDay(for: Date())
+        
+        // If no intake today, check from yesterday for the streak
+        if groupedEntries[checkDate] == nil {
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        while groupedEntries[checkDate] != nil {
+            streak += 1
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        return streak
+    }
+
 
     // MARK: - Today's Progress Section
     @ViewBuilder
@@ -213,7 +306,7 @@ struct DashboardView: View {
             StatCard(
                 title: "Missed",
                 value: "\(viewModel.missedDoses)",
-                iconName: "exclamationmark.triangle.fill", // Keep SF for generic warning logic or add to protocol? Protocol has no 'warning' emoji.
+                iconName: "exclamationmark.triangle.fill",
                 color: themeManager.currentTheme.errorColor
             )
         }
@@ -392,7 +485,9 @@ struct DashboardView: View {
     let schema = Schema([
         Medication.self,
         DoseLog.self,
-        UserStats.self
+        UserStats.self,
+        WaterSettings.self,
+        WaterEntry.self
     ])
     
     let modelConfiguration = ModelConfiguration(
