@@ -1,5 +1,5 @@
 //
-//  MedicationsListView.swift
+//  MedicationSettingsCard.swift
 //  Elixir: Daily Ritual
 //
 //  Created by Claude on 31.12.2025.
@@ -8,61 +8,6 @@
 import SwiftUI
 import SwiftData
 
-struct MedicationsListView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Environment(ThemeManager.self) private var themeManager
-    @Environment(\.dismiss) private var dismiss
-
-    @Query(sort: \Medication.createdAt, order: .reverse) private var medications: [Medication]
-
-    var body: some View {
-        ZStack {
-            // Background
-            themeManager.currentTheme.backgroundGradient
-                .ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: Spacing.lg) {
-                    if medications.isEmpty {
-                        emptyStateView
-                    } else {
-                        ForEach(medications) { medication in
-                            MedicationSettingsCard(medication: medication)
-                        }
-                    }
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, Spacing.lg)
-            }
-        }
-        .navigationTitle("All Rituals")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    // MARK: - Empty State
-    @ViewBuilder
-    private var emptyStateView: some View {
-        VStack(spacing: Spacing.md) {
-            Image(systemName: themeManager.currentTheme.symbols.currency)
-                .font(.system(size: 64))
-                .foregroundColor(themeManager.currentTheme.primaryColor)
-
-            Text("No rituals yet")
-                .font(themeManager.currentTheme.font(for: .headline))
-                .foregroundColor(themeManager.currentTheme.textPrimary)
-
-            Text("Add your first medication to begin tracking")
-                .font(themeManager.currentTheme.font(for: .callout))
-                .foregroundColor(themeManager.currentTheme.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.xxl)
-    }
-}
-
-// MARK: - Medication Settings Card
 struct MedicationSettingsCard: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.modelContext) private var modelContext
@@ -186,14 +131,5 @@ struct MedicationSettingsCard: View {
         NotificationManager.shared.cancelNotifications(for: medication)
         modelContext.delete(medication)
         try? modelContext.save()
-    }
-}
-
-// MARK: - Preview
-#Preview {
-    NavigationStack {
-        MedicationsListView()
-            .modelContainer(DataController.preview)
-            .environment(ThemeManager.shared)
     }
 }

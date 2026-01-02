@@ -1,5 +1,5 @@
 //
-//  MainTabView.swift
+//  MainTab.swift
 //  Elixir: Daily Ritual
 //
 //  Main container with circular menu navigation
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct MainTabView: View {
+struct MainTab: View {
     @Environment(ThemeManager.self) private var themeManager
     @State private var selectedTab: AppTab = .dashboard
     @State private var notificationState = NotificationState.shared
@@ -17,7 +17,7 @@ struct MainTabView: View {
         NavigationStack {
             ZStack {
                 // Current Screen
-                currentScreen
+                CurrentScreen(selectedTab: selectedTab)
                     .transition(.opacity)
 
                 // Circular Menu (Left Side)
@@ -38,33 +38,18 @@ struct MainTabView: View {
                  if notificationState.isAlertVisible,
                     let uuid = notificationState.activeMedicationId,
                     let content = notificationState.activeNotificationContent {
-                     NotificationAlertView(medicationId: uuid, content: content)
+                     NotificationAlert(medicationId: uuid, content: content)
                          .transition(.opacity)
                          .zIndex(100)
                  }
             }
         }
     }
-
-    // MARK: - Current Screen
-    @ViewBuilder
-    private var currentScreen: some View {
-        switch selectedTab {
-        case .dashboard:
-            DashboardView()
-
-        case .add:
-            AddMedicationView()
-
-        case .settings:
-            SettingsView()
-        }
-    }
 }
 
 // MARK: - Preview
 #Preview {
-    MainTabView()
+    MainTab()
         .modelContainer(DataController.preview)
         .environment(ThemeManager.shared)
 }

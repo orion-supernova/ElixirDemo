@@ -1,5 +1,5 @@
 //
-//  WaterHistoryView.swift
+//  WaterHistory.swift
 //  Elixir: Daily Ritual
 //
 //  A historical view of water intake daily totals with graphs and timestamps.
@@ -9,44 +9,44 @@ import SwiftUI
 import SwiftData
 import Charts
 
-struct WaterHistoryView: View {
+struct WaterHistory: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
-    
+
     @Query(sort: \WaterEntry.date, order: .reverse) private var entries: [WaterEntry]
     @Query private var waterSettings: [WaterSettings]
-    
+
     @State private var expandedDates: Set<Date> = []
-    
+
     private var dailyTotals: [(date: Date, total: Double, entries: [WaterEntry])] {
         let calendar = Calendar.current
         let grouped = Dictionary(grouping: entries) { calendar.startOfDay(for: $0.date) }
-        
+
         return grouped.map { (date: $0.key, total: $0.value.reduce(0) { $0 + $1.amountLiters }, entries: $0.value.sorted { $0.date > $1.date }) }
             .sorted { $0.date > $1.date }
     }
-    
+
     private var chartData: [(date: Date, total: Double)] {
         let calendar = Calendar.current
         let last7Days = (0...6).compactMap { calendar.date(byAdding: .day, value: -$0, to: calendar.startOfDay(for: Date())) }
-        
+
         return last7Days.map { date in
             let total = entries.filter { calendar.isDate($0.date, inSameDayAs: date) }.reduce(0) { $0 + $1.amountLiters }
             return (date: date, total: total)
         }.sorted { $0.date < $1.date }
     }
-    
+
     private var dailyGoal: Double {
         waterSettings.first?.dailyGoalLiters ?? 2.0
     }
-    
+
     var body: some View {
         ZStack {
             // Background
             themeManager.currentTheme.backgroundGradient
                 .ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 if entries.isEmpty {
                     emptyHistoryView
@@ -54,16 +54,16 @@ struct WaterHistoryView: View {
                     ScrollView {
                         VStack(spacing: Spacing.xl) {
                             // Weekly Chart
-                            weeklyIntakeChart
+                            WeeklyIntakeChart(chartData: chartData, dailyGoal: dailyGoal)
                                 .padding(.top, Spacing.md)
-                            
+
                             // Detailed Logs
                             VStack(alignment: .leading, spacing: Spacing.md) {
                                 Text("Daily Logs")
                                     .font(themeManager.currentTheme.font(for: .headline))
                                     .foregroundColor(themeManager.currentTheme.textPrimary)
                                     .padding(.horizontal, Spacing.md)
-                                
+
                                 LazyVStack(spacing: Spacing.md) {
                                     ForEach(dailyTotals, id: \.date) { daily in
                                         historyRow(for: daily)
@@ -86,71 +86,12 @@ struct WaterHistoryView: View {
             }
         }
     }
-    
-    private var weeklyIntakeChart: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Weekly Insights")
-                .font(themeManager.currentTheme.font(for: .headline))
-                .foregroundColor(themeManager.currentTheme.textPrimary)
-            
-            Chart {
-                ForEach(chartData, id: \.date) { data in
-                    BarMark(
-                        x: .value("Day", data.date, unit: .day),
-                        y: .value("Liters", data.total)
-                    )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [themeManager.currentTheme.primaryColor, themeManager.currentTheme.secondaryColor],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                    )
-                    .cornerRadius(4)
-                }
-                
-                RuleMark(y: .value("Goal", dailyGoal))
-                    .foregroundStyle(.red.opacity(0.5))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .annotation(position: .top, alignment: .trailing) {
-                        Text("Goal")
-                            .font(.caption2)
-                            .foregroundColor(.red.opacity(0.8))
-                    }
-            }
-            .frame(height: 180)
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .day)) { value in
-                    AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                }
-            }
-            .chartYAxis {
-                AxisMarks { value in
-                    AxisValueLabel {
-                        if let l = value.as(Double.self) {
-                            Text("\(String(format: "%.1f", l))L")
-                        }
-                    }
-                }
-            }
-        }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
-        )
-        .padding(.horizontal, Spacing.md)
-    }
-    
+
     private func historyRow(for daily: (date: Date, total: Double, entries: [WaterEntry])) -> some View {
         let isExpanded = expandedDates.contains(daily.date)
         let progress = min(daily.total / dailyGoal, 1.0)
         let isGoalMet = daily.total >= dailyGoal
-        
+
         return VStack(alignment: .leading, spacing: 12) {
             Button {
                 withAnimation(.spring()) {
@@ -166,33 +107,33 @@ struct WaterHistoryView: View {
                         Text(daily.date, style: .date)
                             .font(themeManager.currentTheme.font(for: .headline))
                             .foregroundColor(themeManager.currentTheme.textPrimary)
-                        
+
                         Text("\(Int(daily.total * 1000))ml / \(Int(dailyGoal * 1000))ml")
                             .font(themeManager.currentTheme.font(for: .caption))
                             .foregroundColor(themeManager.currentTheme.textSecondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     if isGoalMet {
                         Image(systemName: "crown.fill")
                             .foregroundColor(.yellow)
                             .font(.system(size: 16))
                     }
-                    
+
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
             }
-            
+
             // Progress Bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.white.opacity(0.1))
-                    
+
                     RoundedRectangle(cornerRadius: 8)
                         .fill(
                             LinearGradient(
@@ -208,23 +149,23 @@ struct WaterHistoryView: View {
                 }
             }
             .frame(height: 8)
-            
+
             if isExpanded {
                 VStack(spacing: 8) {
                     Divider().background(Color.white.opacity(0.1))
-                    
+
                     ForEach(daily.entries) { entry in
                         HStack {
                             Image(systemName: "drop.fill")
                                 .font(.system(size: 12))
                                 .foregroundColor(themeManager.currentTheme.primaryColor)
-                            
+
                             Text("\(Int(entry.amountLiters * 1000))ml")
                                 .font(themeManager.currentTheme.font(for: .callout))
                                 .foregroundColor(themeManager.currentTheme.textPrimary)
-                            
+
                             Spacer()
-                            
+
                             Text(entry.date, style: .time)
                                 .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.textSecondary)
@@ -245,17 +186,17 @@ struct WaterHistoryView: View {
                 )
         )
     }
-    
+
     private var emptyHistoryView: some View {
         VStack(spacing: 20) {
             Image(systemName: "drop.fill")
                 .font(.system(size: 60))
                 .foregroundColor(themeManager.currentTheme.primaryColor.opacity(0.3))
-            
+
             Text("No hydration history yet")
                 .font(themeManager.currentTheme.font(for: .headline))
                 .foregroundColor(themeManager.currentTheme.textSecondary)
-            
+
             Text("Begin your hydration ritual to see your progress here.")
                 .font(themeManager.currentTheme.font(for: .callout))
                 .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.7))
@@ -268,7 +209,7 @@ struct WaterHistoryView: View {
 
 #Preview {
     NavigationStack {
-        WaterHistoryView()
+        WaterHistory()
             .environment(ThemeManager.shared)
             .modelContainer(DataController.preview)
     }

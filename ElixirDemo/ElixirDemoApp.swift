@@ -14,7 +14,7 @@ struct ElixirDemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            MainTab()
                 .preferredColorScheme(.dark)
                 .environment(themeManager)
                 .onAppear {
