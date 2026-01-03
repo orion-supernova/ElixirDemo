@@ -154,19 +154,29 @@ struct WaterHistory: View {
                 VStack(spacing: 8) {
                     Divider().background(Color.white.opacity(0.1))
 
-                    ForEach(daily.entries) { entry in
+                    ForEach(groupEntriesByMinute(daily.entries), id: \.minute) { grouped in
                         HStack {
                             Image(systemName: "drop.fill")
                                 .font(.system(size: 12))
                                 .foregroundColor(themeManager.currentTheme.primaryColor)
 
-                            Text("\(Int(entry.amountLiters * 1000))ml")
+                            Text("\(Int(grouped.totalAmount * 1000))ml")
                                 .font(themeManager.currentTheme.font(for: .callout))
                                 .foregroundColor(themeManager.currentTheme.textPrimary)
 
+                            if grouped.count > 1 {
+                                Text("x\(grouped.count)")
+                                    .font(themeManager.currentTheme.font(for: .caption))
+                                    .foregroundColor(themeManager.currentTheme.primaryColor)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(themeManager.currentTheme.primaryColor.opacity(0.2))
+                                    .cornerRadius(8)
+                            }
+
                             Spacer()
 
-                            Text(entry.date, style: .time)
+                            Text(grouped.minute, style: .time)
                                 .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.textSecondary)
                         }
@@ -204,6 +214,17 @@ struct WaterHistory: View {
                 .padding(.horizontal, 40)
         }
         .frame(maxHeight: .infinity)
+    }
+
+    private func groupEntriesByMinute(_ entries: [WaterEntry]) -> [(minute: Date, count: Int, totalAmount: Double)] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: entries) { entry in
+            let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: entry.date)
+            return calendar.date(from: components)!
+        }
+
+        return grouped.map { (minute: $0.key, count: $0.value.count, totalAmount: $0.value.reduce(0) { $0 + $1.amountLiters }) }
+            .sorted { $0.minute > $1.minute }
     }
 }
 

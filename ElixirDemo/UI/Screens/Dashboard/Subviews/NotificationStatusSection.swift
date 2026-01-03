@@ -289,6 +289,7 @@ struct BGTaskStatusView: View {
 struct MedicationDetailsSheet: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var groupedNotifications: [(medicationId: String, notifications: [UNNotificationRequest])] = []
     @State private var totalCount: Int = 0
 
@@ -338,7 +339,7 @@ struct MedicationDetailsSheet: View {
                             .fontWeight(.semibold)
                     }
 
-                    Text("These are notifications currently scheduled for your active rituals. Each ritual may have multiple reminders based on frequency (daily or every other day).")
+                    Text("These are notifications currently scheduled for your active rituals. Each ritual may have multiple reminders based on frequency (daily, every other day, weekly, specific days, etc.).")
                         .font(themeManager.currentTheme.font(for: .caption))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -477,6 +478,12 @@ struct MedicationDetailsSheet: View {
         .onAppear {
             loadNotifications()
         }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                // Refresh when app becomes active (after theme change, etc.)
+                loadNotifications()
+            }
+        }
     }
 
     private func loadNotifications() {
@@ -522,6 +529,7 @@ struct MedicationDetailsSheet: View {
 struct WaterDetailsSheet: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var notifications: [UNNotificationRequest] = []
 
     var body: some View {
@@ -667,6 +675,12 @@ struct WaterDetailsSheet: View {
         .onAppear {
             loadNotifications()
         }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                // Refresh when app becomes active (after theme change, etc.)
+                loadNotifications()
+            }
+        }
     }
 
     private func loadNotifications() {
@@ -684,6 +698,7 @@ struct WaterDetailsSheet: View {
 struct RescheduleDetailsSheet: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var notifications: [UNNotificationRequest] = []
 
     var body: some View {
@@ -828,6 +843,12 @@ struct RescheduleDetailsSheet: View {
         }
         .onAppear {
             loadNotifications()
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                // Refresh when app becomes active (after theme change, etc.)
+                loadNotifications()
+            }
         }
     }
 

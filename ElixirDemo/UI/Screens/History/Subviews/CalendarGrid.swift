@@ -153,7 +153,7 @@ struct CalendarGrid: View {
         case .missed:
             return themeManager.currentTheme.errorColor
         case .none:
-            return Color.white.opacity(0.2)
+            return Color.clear // Don't show dot if no logs exist
         }
     }
 }
