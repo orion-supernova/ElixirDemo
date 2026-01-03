@@ -42,6 +42,7 @@ struct DashboardHeaderSection: View {
                         Image(systemName: "water.waves")
                             .font(.system(size: 24))
                             .foregroundColor(themeManager.currentTheme.primaryColor)
+                            .symbolEffect(.wiggle.byLayer, options: .repeat(.periodic(delay: 1.0)))
 
                         Text("\(calculateWaterStreak())")
                             .font(themeManager.currentTheme.font(for: .headline))
@@ -88,11 +89,20 @@ struct DashboardHeaderSection: View {
 
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: Date())
+        
+        let greeting: String
         switch hour {
-        case 0..<12: return "Good Morning"
-        case 12..<17: return "Good Afternoon"
-        default: return "Good Evening"
+        case 5..<12:
+            greeting = NSLocalizedString("Good Morning", comment: "Morning greeting")
+        case 12..<17:
+            greeting = NSLocalizedString("Good Afternoon", comment: "Afternoon greeting")
+        case 17..<21:
+            greeting = NSLocalizedString("Good Evening", comment: "Evening greeting")
+        default:
+            greeting = NSLocalizedString("Good Night", comment: "Late night greeting")
         }
+        
+        return greeting
     }
 
     private func calculateWaterStreak() -> Int {

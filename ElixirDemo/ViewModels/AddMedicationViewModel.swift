@@ -80,7 +80,7 @@ final class AddMedicationViewModel {
     }
 
     // MARK: - Save Medication
-    func saveMedication() -> Bool {
+    func saveMedication() async -> Bool {
         guard validate() else { return false }
 
         // Combine dosage amount and unit
@@ -100,10 +100,10 @@ final class AddMedicationViewModel {
         modelContext.insert(medication)
 
         // Logs will be generated on-demand by Dashboard/Calendar
-        
+
         // Schedule Notifications
-        NotificationManager.shared.scheduleNotifications(for: medication)
-        
+        await NotificationManager.shared.scheduleNotifications(for: medication)
+
         do {
             try modelContext.save()
             return true

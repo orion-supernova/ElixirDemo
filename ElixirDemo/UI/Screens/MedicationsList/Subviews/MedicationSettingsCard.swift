@@ -128,8 +128,18 @@ struct MedicationSettingsCard: View {
     }
 
     private func deleteMedication() {
-        NotificationManager.shared.cancelNotifications(for: medication)
-        modelContext.delete(medication)
-        try? modelContext.save()
+        Task {
+            // Cancel notifications first and wait
+            await NotificationManager.shared.cancelNotifications(for: medication)
+
+            // Update budget manager
+            await NotificationBudgetManager.shared.refresh()
+
+            // Then delete from database
+            await MainActor.run {
+                modelContext.delete(medication)
+                try? modelContext.save()
+            }
+        }
     }
 }

@@ -51,6 +51,13 @@ struct Dashboard: View {
                                 if mode == .both || mode == .medicationOnly {
                                     // Medication Progress
                                     TodayProgressSection(viewModel: viewModel)
+                                    
+                                    // Dose List
+                                    DoseListSection(
+                                        viewModel: viewModel,
+                                        doseLogToDelete: $doseLogToDelete,
+                                        showDeleteConfirmation: $showDeleteConfirmation
+                                    )
 
                                     // Stats Summary
                                     DashboardStatsSummary(viewModel: viewModel)
@@ -58,12 +65,8 @@ struct Dashboard: View {
                                     // Weekly Overview
                                     WeeklyOverviewSection()
 
-                                    // Dose List
-                                    DoseListSection(
-                                        viewModel: viewModel,
-                                        doseLogToDelete: $doseLogToDelete,
-                                        showDeleteConfirmation: $showDeleteConfirmation
-                                    )
+                                    // Notification Status (Budget Manager)
+                                    NotificationStatusSection()
                                 }
                             }
                         }

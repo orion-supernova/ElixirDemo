@@ -27,14 +27,16 @@ struct HydrationSection: View {
                     get: { settings.remindersEnabled },
                     set: { newValue in
                         settings.remindersEnabled = newValue
-                        if newValue {
-                            WaterNotificationManager.shared.scheduleWaterReminders(
-                                frequencyHours: settings.frequencyHours,
-                                startHour: settings.activeStartHour,
-                                endHour: settings.activeEndHour
-                            )
-                        } else {
-                            WaterNotificationManager.shared.cancelAllWaterReminders()
+                        Task {
+                            if newValue {
+                                await WaterNotificationManager.shared.scheduleWaterReminders(
+                                    frequencyHours: settings.frequencyHours,
+                                    startHour: settings.activeStartHour,
+                                    endHour: settings.activeEndHour
+                                )
+                            } else {
+                                await WaterNotificationManager.shared.cancelAllWaterReminders()
+                            }
                         }
                         try? modelContext.save()
                     }
@@ -60,11 +62,13 @@ struct HydrationSection: View {
                             get: { settings.frequencyHours },
                             set: { newValue in
                                 settings.frequencyHours = newValue
-                                WaterNotificationManager.shared.scheduleWaterReminders(
-                                    frequencyHours: newValue,
-                                    startHour: settings.activeStartHour,
-                                    endHour: settings.activeEndHour
-                                )
+                                Task {
+                                    await WaterNotificationManager.shared.scheduleWaterReminders(
+                                        frequencyHours: newValue,
+                                        startHour: settings.activeStartHour,
+                                        endHour: settings.activeEndHour
+                                    )
+                                }
                                 try? modelContext.save()
                             }
                         )) {
@@ -74,6 +78,12 @@ struct HydrationSection: View {
                             Text("6h").tag(6)
                         }
                         .pickerStyle(.segmented)
+
+                        // Show scheduled hours
+                        Text("Reminders at: \(scheduledHoursText(frequency: settings.frequencyHours, start: settings.activeStartHour, end: settings.activeEndHour))")
+                            .font(themeManager.currentTheme.font(for: .caption2))
+                            .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.7))
+                            .padding(.top, 4)
                     }
 
                     Divider().background(Color.white.opacity(0.1))
@@ -95,11 +105,13 @@ struct HydrationSection: View {
                                     get: { settings.activeStartHour },
                                     set: { newValue in
                                         settings.startHour = newValue
-                                        WaterNotificationManager.shared.scheduleWaterReminders(
-                                            frequencyHours: settings.frequencyHours,
-                                            startHour: newValue,
-                                            endHour: settings.activeEndHour
-                                        )
+                                        Task {
+                                            await WaterNotificationManager.shared.scheduleWaterReminders(
+                                                frequencyHours: settings.frequencyHours,
+                                                startHour: newValue,
+                                                endHour: settings.activeEndHour
+                                            )
+                                        }
                                         try? modelContext.save()
                                     }
                                 )) {
@@ -134,11 +146,13 @@ struct HydrationSection: View {
                                     get: { settings.activeEndHour },
                                     set: { newValue in
                                         settings.endHour = newValue
-                                        WaterNotificationManager.shared.scheduleWaterReminders(
-                                            frequencyHours: settings.frequencyHours,
-                                            startHour: settings.activeStartHour,
-                                            endHour: newValue
-                                        )
+                                        Task {
+                                            await WaterNotificationManager.shared.scheduleWaterReminders(
+                                                frequencyHours: settings.frequencyHours,
+                                                startHour: settings.activeStartHour,
+                                                endHour: newValue
+                                            )
+                                        }
                                         try? modelContext.save()
                                     }
                                 )) {
@@ -172,6 +186,27 @@ struct HydrationSection: View {
                 modelContext.insert(initial)
                 try? modelContext.save()
             }
+        }
+    }
+
+    // Helper function to generate scheduled hours text
+    private func scheduledHoursText(frequency: Int, start: Int, end: Int) -> String {
+        var hours: [Int] = []
+        var currentHour = start
+
+        while currentHour <= end {
+            hours.append(currentHour)
+            currentHour += frequency
+        }
+
+        if hours.count <= 5 {
+            // Show all hours if 5 or fewer
+            return hours.map { String(format: "%d:00", $0) }.joined(separator: ", ")
+        } else {
+            // Show first 3 and last 2 with ellipsis
+            let first3 = hours.prefix(3).map { String(format: "%d:00", $0) }
+            let last2 = hours.suffix(2).map { String(format: "%d:00", $0) }
+            return first3.joined(separator: ", ") + " ... " + last2.joined(separator: ", ")
         }
     }
 }

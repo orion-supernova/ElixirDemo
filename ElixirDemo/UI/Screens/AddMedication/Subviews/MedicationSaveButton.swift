@@ -15,13 +15,15 @@ struct MedicationSaveButton: View {
 
     var body: some View {
         Button(action: {
-            if viewModel.saveMedication() {
-                // Haptic feedback
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
+            Task {
+                if await viewModel.saveMedication() {
+                    // Haptic feedback
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
 
-                // Show success alert
-                showSuccessAlert = true
+                    // Show success alert
+                    showSuccessAlert = true
+                }
             }
         }) {
             HStack(spacing: Spacing.sm) {

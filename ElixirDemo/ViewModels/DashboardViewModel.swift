@@ -234,10 +234,12 @@ final class DashboardViewModel {
     // MARK: - Deletion
     func deleteMedication(for doseLog: DoseLog) {
         guard let medication = doseLog.medication else { return }
-        
+
         // Cancel notifications first
-        NotificationManager.shared.cancelNotifications(for: medication)
-        
+        Task {
+            await NotificationManager.shared.cancelNotifications(for: medication)
+        }
+
         // Delete medication (cascades to logs)
         modelContext.delete(medication)
         
