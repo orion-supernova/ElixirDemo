@@ -52,10 +52,10 @@ final class ThemeManager {
         
         // 2. Determine Current Theme
         let all = allDefaultThemes + loadedCustomThemes
-        let savedId = UserDefaults.standard.string(forKey: userDefaultsKey) ?? ThemeIdentifier.paladin.rawValue
+        let savedId = UserDefaults.standard.string(forKey: userDefaultsKey) ?? ThemeIdentifier.system.rawValue
         
-        // Fallback to Paladin if saved ID is invalid
-        let validTheme = all.first(where: { $0.id == savedId }) ?? RPGTheme_Paladin()
+        // Fallback to System/Clean if saved ID is invalid
+        let validTheme = all.first(where: { $0.id == savedId }) ?? CleanTheme()
         self.currentTheme = validTheme
         self.selectedCategory = validTheme.category
     }
