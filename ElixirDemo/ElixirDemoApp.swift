@@ -27,6 +27,11 @@ struct ElixirDemoApp: App {
                 .onAppear {
                     NotificationManager.shared.requestAuthorization()
                 }
+                .onOpenURL { url in
+                    // Widget deep link: "elixir://dashboard" opens the app to the Dashboard tab.
+                    // MainTab already lands on Dashboard by default, so no additional routing needed.
+                    print("📲 Opened via URL: \(url)")
+                }
         }
         .modelContainer(DataController.shared.container)
         .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -64,5 +69,10 @@ struct ElixirDemoApp: App {
 
         // Refresh water reminders if enabled
         await WaterNotificationManager.shared.refreshFromSettings()
+
+        // Sync widget data so it reflects any dose changes that happened in background
+        WidgetDataManager.shared.syncToWidget(
+            modelContext: DataController.shared.container.mainContext
+        )
     }
 }

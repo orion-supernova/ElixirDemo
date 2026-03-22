@@ -1,38 +1,26 @@
 //
 //  Color+Hex.swift
-//  Elixir: Daily Ritual
+//  ElixirWidget
 //
-//  Created by Antigravity on 31.12.2025.
+//  Hex color initializer for the widget extension.
+//  Mirrors ElixirDemo/Core/Extensions/Color+Hex.swift — kept separate
+//  because the widget extension cannot link against the main app binary.
 //
 
 import SwiftUI
 
 extension Color {
-    /// Returns a 6-character uppercase hex string (RRGGBB) for this color,
-    /// resolved in the dark trait environment (to match the app's dark-mode theme).
-    var hexString: String {
-        let uiColor = UIColor(self).resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return String(
-            format: "%02X%02X%02X",
-            Int((r * 255).rounded()),
-            Int((g * 255).rounded()),
-            Int((b * 255).rounded())
-        )
-    }
-
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
         switch hex.count {
-        case 3: // RGB (12-bit)
+        case 3:
             (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
+        case 6:
             (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
+        case 8:
             (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
         default:
             (a, r, g, b) = (255, 0, 0, 0)

@@ -56,6 +56,7 @@ final class DashboardViewModel {
         ensureLogsExistForCurrentWeek()
         loadUserStats()
         loadDoseLogsForSelectedDate()
+        WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
     }
     
     func refresh() {
@@ -146,6 +147,7 @@ final class DashboardViewModel {
 
         loadDoseLogsForSelectedDate()
         loadUserStats()
+        WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
     }
 
     private func markDoseAsTaken(_ doseLog: DoseLog) {
@@ -170,11 +172,13 @@ final class DashboardViewModel {
     func markDoseAsSkipped(_ doseLog: DoseLog) {
         gamificationManager.recordDoseSkipped(for: doseLog)
         loadDoseLogsForSelectedDate()
+        WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
     }
 
     func markDoseAsMissed(_ doseLog: DoseLog) {
         gamificationManager.recordDoseMissed(for: doseLog)
         loadDoseLogsForSelectedDate()
+        WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
     }
 
     // MARK: - Week Calendar Data
@@ -247,6 +251,7 @@ final class DashboardViewModel {
             try modelContext.save()
             // Refresh data
             refresh()
+            WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
         } catch {
             print("Failed to delete medication: \(error)")
         }

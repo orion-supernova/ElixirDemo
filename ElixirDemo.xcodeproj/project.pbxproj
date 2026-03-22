@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		54714F6F2F670B9A00FFE3C8 /* ConvexMobile in Frameworks */ = {isa = PBXBuildFile; productRef = 54714F6E2F670B9A00FFE3C8 /* ConvexMobile */; };
+		5473FB832F7087450075BC23 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5473F79B2F7082F20075BC23 /* WidgetKit.framework */; };
+		5473FB842F7087450075BC23 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5473F79D2F7082F20075BC23 /* SwiftUI.framework */; };
+		5473FB912F7087460075BC23 /* ElixirWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5473FB822F7087450075BC23 /* ElixirWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,12 +28,36 @@
 			remoteGlobalIDString = 54166A042F053A7E00F119D7;
 			remoteInfo = ElixirDemo;
 		};
+		5473FB8F2F7087460075BC23 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 541669FD2F053A7E00F119D7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5473FB812F7087450075BC23;
+			remoteInfo = ElixirWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5473F7B02F7082F30075BC23 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5473FB912F7087460075BC23 /* ElixirWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		54166A052F053A7E00F119D7 /* ElixirDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ElixirDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54166A142F053A8000F119D7 /* ElixirDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ElixirDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		54166A1E2F053A8000F119D7 /* ElixirDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ElixirDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5473F79B2F7082F20075BC23 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		5473F79D2F7082F20075BC23 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		5473FB822F7087450075BC23 /* ElixirWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ElixirWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -40,6 +67,13 @@
 				Info.plist,
 			);
 			target = 54166A042F053A7E00F119D7 /* ElixirDemo */;
+		};
+		5473FB952F7087460075BC23 /* Exceptions for "ElixirWidget" folder in "ElixirWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5473FB812F7087450075BC23 /* ElixirWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -60,6 +94,14 @@
 		54166A212F053A8000F119D7 /* ElixirDemoUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ElixirDemoUITests;
+			sourceTree = "<group>";
+		};
+		5473FB852F7087450075BC23 /* ElixirWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5473FB952F7087460075BC23 /* Exceptions for "ElixirWidget" folder in "ElixirWidgetExtension" target */,
+			);
+			path = ElixirWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -87,6 +129,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5473FB7F2F7087450075BC23 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5473FB842F7087450075BC23 /* SwiftUI.framework in Frameworks */,
+				5473FB832F7087450075BC23 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +147,8 @@
 				54166A072F053A7E00F119D7 /* ElixirDemo */,
 				54166A172F053A8000F119D7 /* ElixirDemoTests */,
 				54166A212F053A8000F119D7 /* ElixirDemoUITests */,
+				5473FB852F7087450075BC23 /* ElixirWidget */,
+				5473F79A2F7082F20075BC23 /* Frameworks */,
 				54166A062F053A7E00F119D7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -106,8 +159,18 @@
 				54166A052F053A7E00F119D7 /* ElixirDemo.app */,
 				54166A142F053A8000F119D7 /* ElixirDemoTests.xctest */,
 				54166A1E2F053A8000F119D7 /* ElixirDemoUITests.xctest */,
+				5473FB822F7087450075BC23 /* ElixirWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5473F79A2F7082F20075BC23 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5473F79B2F7082F20075BC23 /* WidgetKit.framework */,
+				5473F79D2F7082F20075BC23 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,10 +183,12 @@
 				54166A012F053A7E00F119D7 /* Sources */,
 				54166A022F053A7E00F119D7 /* Frameworks */,
 				54166A032F053A7E00F119D7 /* Resources */,
+				5473F7B02F7082F30075BC23 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5473FB902F7087460075BC23 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				54166A072F053A7E00F119D7 /* ElixirDemo */,
@@ -182,6 +247,28 @@
 			productReference = 54166A1E2F053A8000F119D7 /* ElixirDemoUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		5473FB812F7087450075BC23 /* ElixirWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5473FB922F7087460075BC23 /* Build configuration list for PBXNativeTarget "ElixirWidgetExtension" */;
+			buildPhases = (
+				5473FB7E2F7087450075BC23 /* Sources */,
+				5473FB7F2F7087450075BC23 /* Frameworks */,
+				5473FB802F7087450075BC23 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5473FB852F7087450075BC23 /* ElixirWidget */,
+			);
+			name = ElixirWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = ElixirWidgetExtension;
+			productReference = 5473FB822F7087450075BC23 /* ElixirWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -189,7 +276,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					54166A042F053A7E00F119D7 = {
@@ -202,6 +289,9 @@
 					54166A1D2F053A8000F119D7 = {
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = 54166A042F053A7E00F119D7;
+					};
+					5473FB812F7087450075BC23 = {
+						CreatedOnToolsVersion = 26.3;
 					};
 				};
 			};
@@ -225,6 +315,7 @@
 				54166A042F053A7E00F119D7 /* ElixirDemo */,
 				54166A132F053A8000F119D7 /* ElixirDemoTests */,
 				54166A1D2F053A8000F119D7 /* ElixirDemoUITests */,
+				5473FB812F7087450075BC23 /* ElixirWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -245,6 +336,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		54166A1C2F053A8000F119D7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5473FB802F7087450075BC23 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -275,6 +373,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5473FB7E2F7087450075BC23 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -287,6 +392,11 @@
 			isa = PBXTargetDependency;
 			target = 54166A042F053A7E00F119D7 /* ElixirDemo */;
 			targetProxy = 54166A1F2F053A8000F119D7 /* PBXContainerItemProxy */;
+		};
+		5473FB902F7087460075BC23 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5473FB812F7087450075BC23 /* ElixirWidgetExtension */;
+			targetProxy = 5473FB8F2F7087460075BC23 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -417,6 +527,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ElixirDemo/ElixirDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 37TC2VKVJ6;
@@ -453,6 +564,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ElixirDemo/ElixirDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 37TC2VKVJ6;
@@ -568,6 +680,70 @@
 			};
 			name = Release;
 		};
+		5473FB932F7087460075BC23 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = ElixirWidget/ElixirWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 37TC2VKVJ6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ElixirWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ElixirWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.walhallaa.ElixirDemo.ElixirWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5473FB942F7087460075BC23 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = ElixirWidget/ElixirWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 37TC2VKVJ6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ElixirWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ElixirWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.walhallaa.ElixirDemo.ElixirWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -603,6 +779,15 @@
 			buildConfigurations = (
 				54166A2F2F053A8000F119D7 /* Debug */,
 				54166A302F053A8000F119D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5473FB922F7087460075BC23 /* Build configuration list for PBXNativeTarget "ElixirWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5473FB932F7087460075BC23 /* Debug */,
+				5473FB942F7087460075BC23 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
