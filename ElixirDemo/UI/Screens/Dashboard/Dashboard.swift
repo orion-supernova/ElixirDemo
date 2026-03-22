@@ -51,7 +51,7 @@ struct Dashboard: View {
                                 if mode == .both || mode == .medicationOnly {
                                     // Medication Progress
                                     TodayProgressSection(viewModel: viewModel)
-                                    
+
                                     // Dose List
                                     DoseListSection(
                                         viewModel: viewModel,
@@ -74,6 +74,13 @@ struct Dashboard: View {
                         .padding(.top, Spacing.md)
                         .padding(.bottom, 100)
                     }
+                }
+                .sheet(isPresented: Binding(
+                    get: { viewModel.showWidgetPrompt },
+                    set: { if !$0 { viewModel.dismissWidgetPrompt() } }
+                )) {
+                    AddWidgetSheet(onDismiss: { viewModel.dismissWidgetPrompt() })
+                        .environment(themeManager)
                 }
             } else {
                 ProgressView()
