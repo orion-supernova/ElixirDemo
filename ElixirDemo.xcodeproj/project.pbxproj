@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		54714F6F2F670B9A00FFE3C8 /* ConvexMobile in Frameworks */ = {isa = PBXBuildFile; productRef = 54714F6E2F670B9A00FFE3C8 /* ConvexMobile */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		54166A152F053A8000F119D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54714F6F2F670B9A00FFE3C8 /* ConvexMobile in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = ElixirDemo;
 			packageProductDependencies = (
+				54714F6E2F670B9A00FFE3C8 /* ConvexMobile */,
 			);
 			productName = ElixirDemo;
 			productReference = 54166A052F053A7E00F119D7 /* ElixirDemo.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 541669FC2F053A7E00F119D7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				54714F6D2F670B9A00FFE3C8 /* XCRemoteSwiftPackageReference "convex-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 54166A062F053A7E00F119D7 /* Products */;
 			projectDirPath = "";
@@ -599,6 +608,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		54714F6D2F670B9A00FFE3C8 /* XCRemoteSwiftPackageReference "convex-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/get-convex/convex-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		54714F6E2F670B9A00FFE3C8 /* ConvexMobile */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 54714F6D2F670B9A00FFE3C8 /* XCRemoteSwiftPackageReference "convex-swift" */;
+			productName = ConvexMobile;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 541669FD2F053A7E00F119D7 /* Project object */;
 }
