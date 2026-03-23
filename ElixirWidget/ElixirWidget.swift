@@ -25,31 +25,44 @@ struct ElixirTimelineProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<ElixirWidgetEntry>) -> Void) {
         let now = Date()
+        let calendar = Calendar.current
         let summary = WidgetDoseSummary.readFromSharedContainer() ?? .placeholder
-        let state = WidgetState.from(summary)
+        let midnight = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: now)!)
 
         var entries: [ElixirWidgetEntry] = []
 
-        // Current state
-        entries.append(ElixirWidgetEntry(date: now, summary: summary, widgetState: state))
-
-        // Transition at grace period end: upcoming → overdue
-        if let nextDose = summary.nextDose, nextDose.scheduledTime > now {
-            let gracePeriodEnd = nextDose.scheduledTime.addingTimeInterval(15 * 60)
-            entries.append(ElixirWidgetEntry(
-                date: gracePeriodEnd,
-                summary: summary,
-                widgetState: .overdue(count: summary.overdueCount + 1)
-            ))
+        // Generate hourly entries until midnight so the countdown stays fresh
+        var cursor = now
+        while cursor < midnight {
+            entries.append(makeEntry(at: cursor, summary: summary))
+            cursor = calendar.date(byAdding: .hour, value: 1, to: cursor) ?? midnight
         }
 
-        // Midnight reset
-        let midnight = Calendar.current.startOfDay(
-            for: Calendar.current.date(byAdding: .day, value: 1, to: now)!
-        )
+        // Midnight reset — triggers a fresh getTimeline call next morning
         entries.append(ElixirWidgetEntry(date: midnight, summary: .empty, widgetState: .empty))
 
         completion(Timeline(entries: entries, policy: .atEnd))
+    }
+
+    private func makeEntry(at date: Date, summary: WidgetDoseSummary) -> ElixirWidgetEntry {
+        guard !summary.isEmpty, !summary.isAllDone else {
+            return ElixirWidgetEntry(date: date, summary: summary, widgetState: .from(summary))
+        }
+
+        // Recompute secondsUntil live so the countdown is accurate for each entry
+        if let nextDose = summary.nextDose {
+            let gracePeriodEnd = nextDose.scheduledTime.addingTimeInterval(15 * 60)
+            if date >= gracePeriodEnd {
+                return ElixirWidgetEntry(date: date, summary: summary,
+                                        widgetState: .overdue(count: summary.overdueCount + 1))
+            } else {
+                let secs = max(0, nextDose.scheduledTime.timeIntervalSince(date))
+                return ElixirWidgetEntry(date: date, summary: summary,
+                                        widgetState: .upcoming(nextDoseName: nextDose.medicationName, secondsUntil: secs))
+            }
+        }
+
+        return ElixirWidgetEntry(date: date, summary: summary, widgetState: .from(summary))
     }
 }
 
