@@ -54,25 +54,6 @@ struct SmallWidgetView: View {
             .minimumScaleFactor(0.8)
     }
 
-    @ViewBuilder
-    private var statBadge: some View {
-        if !summary.isEmpty {
-            HStack(spacing: 3) {
-                Image(systemName: statIcon)
-                    .font(.system(size: 9, weight: .semibold))
-                Text(statText)
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-            }
-            .foregroundStyle(statBadgeColor.opacity(0.85))
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(
-                Capsule()
-                    .fill(statBadgeColor.opacity(0.15))
-            )
-        }
-    }
-
     // MARK: - Computed
 
     private var stateLabelColor: Color {
@@ -106,14 +87,42 @@ struct SmallWidgetView: View {
         switch state {
         case .allDone:
             return "\(summary.takenToday)/\(summary.totalToday)"
-        case .upcoming(_, let secs):
-            if secs < 60 { return "Now" }
-            let mins = Int(secs / 60)
-            return mins < 60 ? "In \(mins)m" : "In \(mins / 60)h"
+        case .upcoming:
+            return "Upcoming"
         case .overdue(let count):
             return "\(count) missed"
         case .empty:
             return "Rest day"
+        }
+    }
+
+    @ViewBuilder
+    private var statBadge: some View {
+        if !summary.isEmpty {
+            HStack(spacing: 3) {
+                Image(systemName: statIcon)
+                    .font(.system(size: 9, weight: .semibold))
+                statBadgeValue
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+            }
+            .foregroundStyle(statBadgeColor.opacity(0.85))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill(statBadgeColor.opacity(0.15))
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var statBadgeValue: some View {
+        switch state {
+        case .upcoming(_, let dueDate) where dueDate > entry.date:
+            Text(dueDate, style: .timer)
+        default:
+            Text(statText)
         }
     }
 }
@@ -129,7 +138,7 @@ struct SmallWidgetView: View {
 #Preview("Small – Upcoming", as: .systemSmall) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", secondsUntil: 2700))
+    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(2700)))
 }
 
 #Preview("Small – Overdue", as: .systemSmall) {

@@ -363,7 +363,7 @@ struct ElixirCharacterView: View {
 #Preview("Upcoming", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", secondsUntil: 1800))
+    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(1800)))
 }
 
 #Preview("Overdue", as: .systemMedium) {

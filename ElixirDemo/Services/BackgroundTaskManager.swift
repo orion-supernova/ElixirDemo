@@ -7,6 +7,7 @@
 
 import Foundation
 import BackgroundTasks
+import SwiftData
 import UIKit
 
 class BackgroundTaskManager {
@@ -103,6 +104,12 @@ class BackgroundTaskManager {
                     print("✅ No rescheduling needed - all notifications healthy")
                 }
 
+                await MainActor.run {
+                    WidgetDataManager.shared.syncToWidget(
+                        modelContext: DataController.shared.container.mainContext
+                    )
+                }
+
                 task.setTaskCompleted(success: true)
             } catch {
                 print("❌ BGAppRefreshTask error: \(error)")
@@ -131,6 +138,11 @@ class BackgroundTaskManager {
                 await NotificationManager.shared.rescheduleAllMedications()
                 await WaterNotificationManager.shared.refreshFromSettings()
                 await cancelRescheduleReminders()
+                await MainActor.run {
+                    WidgetDataManager.shared.syncToWidget(
+                        modelContext: DataController.shared.container.mainContext
+                    )
+                }
 
                 print("✅ BGProcessingTask completed - full reschedule done")
                 task.setTaskCompleted(success: true)
