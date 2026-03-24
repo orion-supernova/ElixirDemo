@@ -16,9 +16,15 @@ enum WidgetConstants {
     static let appGroupID = "group.com.walhallaa.ElixirDemo"
     static let summaryKey = "widget_dose_summary_v1"
     static let deepLinkDashboard = "elixir://dashboard"
+    static let widgetKind = "ElixirWidget"
 }
 
 // MARK: - Wire Types
+
+struct WidgetSummaryStore: Codable {
+    let summariesByDay: [String: WidgetDoseSummary]
+    let lastUpdated: Date
+}
 
 struct WidgetDoseSummary: Codable {
     let totalToday: Int
@@ -50,4 +56,11 @@ struct WidgetDoseItem: Codable, Identifiable {
     let status: String
     let iconName: String
     let colorHex: String
+}
+
+enum WidgetDoseStatus: String {
+    case pending
+    case taken
+    case missed
+    case skipped
 }

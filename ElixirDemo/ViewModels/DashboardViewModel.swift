@@ -242,7 +242,7 @@ final class DashboardViewModel {
     // MARK: - Widget Prompt
 
     func checkWidgetInstalled() {
-        WidgetCenter.shared.reloadAllTimelines()
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
         Task {
             let result = await withCheckedContinuation { continuation in
                 WidgetCenter.shared.getCurrentConfigurations { result in

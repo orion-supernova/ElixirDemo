@@ -36,10 +36,7 @@ struct MediumWidgetView: View {
     private var characterColumn: some View {
         VStack(spacing: 6) {
             ElixirCharacterView(state: state, size: 60)
-            Text(state.subLabel)
-                .font(.system(size: 10, weight: .medium, design: .rounded))
-                .foregroundStyle(subLabelColor.opacity(0.8))
-                .lineLimit(1)
+            stateSubtitle
         }
         .frame(width: 76)
     }
@@ -109,7 +106,7 @@ struct MediumWidgetView: View {
             // Name
             Text(item.medicationName)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(item.status == "taken" ? 0.5 : 0.9))
+                .foregroundStyle(Color.white.opacity(item.status == WidgetDoseStatus.taken.rawValue ? 0.5 : 0.9))
                 .lineLimit(1)
 
             Spacer(minLength: 0)
@@ -166,10 +163,10 @@ struct MediumWidgetView: View {
 
     private func statusColor(_ status: String) -> Color {
         switch status {
-        case "taken":   return Color(hex: "4ADE80")
-        case "missed":  return Color(hex: "F87171")
-        case "skipped": return Color(hex: "94A3B8")
-        default:        return Color(hex: "FACC15")    // pending
+        case WidgetDoseStatus.taken.rawValue:   return Color(hex: "4ADE80")
+        case WidgetDoseStatus.missed.rawValue:  return Color(hex: "F87171")
+        case WidgetDoseStatus.skipped.rawValue: return Color(hex: "94A3B8")
+        default:                                return Color(hex: "FACC15")
         }
     }
 
@@ -177,6 +174,33 @@ struct MediumWidgetView: View {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         return f.string(from: date)
+    }
+
+    @ViewBuilder
+    private var stateSubtitle: some View {
+        switch state {
+        case .allDone:
+            subtitleText("Keep it up!")
+        case .upcoming(_, let dueDate) where dueDate > entry.date:
+            Text(dueDate, style: .timer)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(subLabelColor.opacity(0.8))
+                .lineLimit(1)
+        case .upcoming:
+            subtitleText("Due now")
+        case .overdue:
+            subtitleText("Open the app")
+        case .empty:
+            subtitleText("Enjoy your day")
+        }
+    }
+
+    private func subtitleText(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 10, weight: .medium, design: .rounded))
+            .foregroundStyle(subLabelColor.opacity(0.8))
+            .lineLimit(1)
     }
 }
 
@@ -191,7 +215,7 @@ struct MediumWidgetView: View {
 #Preview("Medium – Upcoming", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", secondsUntil: 2700))
+    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(2700)))
 }
 
 #Preview("Medium – Overdue", as: .systemMedium) {

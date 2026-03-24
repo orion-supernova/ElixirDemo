@@ -59,7 +59,15 @@ struct LargeWidgetView: View {
                             Text("\(summary.takenToday) of \(summary.totalToday) taken")
                                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                                 .foregroundStyle(Color.white.opacity(0.8))
-                            if summary.overdueCount > 0 {
+                            if case .upcoming(_, let dueDate) = state, dueDate > entry.date {
+                                HStack(spacing: 4) {
+                                    Text("Due in")
+                                    Text(dueDate, style: .timer)
+                                        .monospacedDigit()
+                                }
+                                .font(.system(size: 11, design: .rounded))
+                                .foregroundStyle(Color(hex: "FDE68A").opacity(0.8))
+                            } else if summary.overdueCount > 0 {
                                 Text("\(summary.overdueCount) overdue")
                                     .font(.system(size: 11, design: .rounded))
                                     .foregroundStyle(Color(hex: "F87171"))
@@ -103,6 +111,7 @@ struct LargeWidgetView: View {
 
     @ViewBuilder
     private var doseList: some View {
+        let displayedItems = Array(summary.todayDoseItems.prefix(5))
         VStack(alignment: .leading, spacing: 0) {
             Text("TODAY'S DOSES")
                 .font(.system(size: 9, weight: .heavy, design: .rounded))
@@ -110,9 +119,9 @@ struct LargeWidgetView: View {
                 .tracking(1.2)
                 .padding(.bottom, 7)
 
-            ForEach(summary.todayDoseItems) { item in
+            ForEach(displayedItems) { item in
                 largeDoseRow(item)
-                if item.id != summary.todayDoseItems.last?.id {
+                if item.id != displayedItems.last?.id {
                     Color.white.opacity(0.06)
                         .frame(height: 1)
                         .padding(.vertical, 4)
@@ -138,7 +147,7 @@ struct LargeWidgetView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.medicationName)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(item.status == "taken" ? 0.5 : 0.92))
+                    .foregroundStyle(Color.white.opacity(item.status == WidgetDoseStatus.taken.rawValue ? 0.5 : 0.92))
                     .lineLimit(1)
                 Text(formattedTime(item.scheduledTime))
                     .font(.system(size: 11, design: .rounded))
@@ -227,28 +236,28 @@ struct LargeWidgetView: View {
 
     private func statusColor(_ status: String) -> Color {
         switch status {
-        case "taken":   return Color(hex: "4ADE80")
-        case "missed":  return Color(hex: "F87171")
-        case "skipped": return Color(hex: "94A3B8")
-        default:        return Color(hex: "FACC15")
+        case WidgetDoseStatus.taken.rawValue:   return Color(hex: "4ADE80")
+        case WidgetDoseStatus.missed.rawValue:  return Color(hex: "F87171")
+        case WidgetDoseStatus.skipped.rawValue: return Color(hex: "94A3B8")
+        default:                                return Color(hex: "FACC15")
         }
     }
 
     private func statusIcon(_ status: String) -> String {
         switch status {
-        case "taken":   return "checkmark.circle.fill"
-        case "missed":  return "xmark.circle.fill"
-        case "skipped": return "minus.circle.fill"
-        default:        return "clock.fill"
+        case WidgetDoseStatus.taken.rawValue:   return "checkmark.circle.fill"
+        case WidgetDoseStatus.missed.rawValue:  return "xmark.circle.fill"
+        case WidgetDoseStatus.skipped.rawValue: return "minus.circle.fill"
+        default:                                return "clock.fill"
         }
     }
 
     private func statusLabel(_ status: String) -> String {
         switch status {
-        case "taken":   return "Done"
-        case "missed":  return "Missed"
-        case "skipped": return "Skipped"
-        default:        return "Pending"
+        case WidgetDoseStatus.taken.rawValue:   return "Done"
+        case WidgetDoseStatus.missed.rawValue:  return "Missed"
+        case WidgetDoseStatus.skipped.rawValue: return "Skipped"
+        default:                                return "Pending"
         }
     }
 
@@ -277,7 +286,7 @@ struct LargeWidgetView: View {
 #Preview("Large – Upcoming", as: .systemLarge) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", secondsUntil: 2700))
+    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(2700)))
 }
 
 #Preview("Large – Overdue", as: .systemLarge) {
