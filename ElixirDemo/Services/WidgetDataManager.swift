@@ -58,7 +58,93 @@ final class WidgetDataManager {
         )
 
         persist(store)
+        syncWaterToWidget(modelContext: modelContext)
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
+    }
+
+    // MARK: - Water Sync
+
+    func syncWaterToWidget(modelContext: ModelContext) {
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfDay = calendar.startOfDay(for: now)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
+
+        let waterDescriptor = FetchDescriptor<WaterEntry>(
+            predicate: #Predicate { entry in
+                entry.date >= startOfDay && entry.date < endOfDay
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+
+        guard let todayEntries = try? modelContext.fetch(waterDescriptor) else { return }
+
+        let settingsDescriptor = FetchDescriptor<WaterSettings>()
+        let settings = (try? modelContext.fetch(settingsDescriptor))?.first
+
+        let goalLiters = settings?.dailyGoalLiters ?? 2.0
+        let goalMl = Int(goalLiters * 1000)
+        let totalMl = todayEntries.reduce(0) { $0 + Int($1.amountLiters * 1000) }
+        let progress = goalMl > 0 ? min(Double(totalMl) / Double(goalMl), 1.0) : 0
+
+        let recentItems = todayEntries.prefix(10).map { entry in
+            WidgetWaterEntryItem(
+                id: entry.id,
+                amountMl: Int(entry.amountLiters * 1000),
+                date: entry.date
+            )
+        }
+
+        let streak = computeWaterStreak(modelContext: modelContext, calendar: calendar)
+        let reminderInterval = settings?.frequencyHours ?? 1
+
+        let summary = WidgetWaterSummary(
+            totalIntakeMl: totalMl,
+            goalMl: goalMl,
+            progress: progress,
+            streak: streak,
+            lastDrinkTime: todayEntries.first?.date,
+            reminderIntervalHours: reminderInterval,
+            recentEntries: recentItems,
+            lastUpdated: now
+        )
+
+        persistWater(summary)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
+    }
+
+    private func persistWater(_ summary: WidgetWaterSummary) {
+        guard let defaults = sharedDefaults else { return }
+        if let data = try? JSONEncoder().encode(summary) {
+            defaults.set(data, forKey: WidgetConstants.waterSummaryKey)
+        }
+    }
+
+    private func computeWaterStreak(modelContext: ModelContext, calendar: Calendar) -> Int {
+        let allWaterDescriptor = FetchDescriptor<WaterEntry>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        guard let allEntries = try? modelContext.fetch(allWaterDescriptor) else { return 0 }
+
+        let groupedByDay = Dictionary(grouping: allEntries) { entry in
+            calendar.startOfDay(for: entry.date)
+        }
+
+        var streak = 0
+        var checkDate = calendar.startOfDay(for: Date())
+
+        if groupedByDay[checkDate] == nil {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: checkDate) else { return 0 }
+            checkDate = yesterday
+        }
+
+        while groupedByDay[checkDate] != nil {
+            streak += 1
+            guard let prev = calendar.date(byAdding: .day, value: -1, to: checkDate) else { break }
+            checkDate = prev
+        }
+
+        return streak
     }
 
     // MARK: - Write

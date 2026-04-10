@@ -296,6 +296,7 @@ struct WaterTrackingContent: View {
         generator.notificationOccurred(.success)
 
         try? modelContext.save()
+        WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
         // Timer to remove this specific ID after 30 seconds
         let idToRemove = entry.id
@@ -317,6 +318,7 @@ struct WaterTrackingContent: View {
         if let entryToDelete = todayEntries.first(where: { $0.id == lastID }) {
             modelContext.delete(entryToDelete)
             try? modelContext.save()
+            WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
@@ -329,6 +331,7 @@ struct WaterTrackingContent: View {
             if let lastEntry = todayEntries.last {
                 modelContext.delete(lastEntry)
                 try? modelContext.save()
+                WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
                 withAnimation { undoableEntryIDs.removeLast() }
             }
         }
@@ -342,6 +345,7 @@ struct WaterTrackingContent: View {
             modelContext.delete(entry)
         }
         try? modelContext.save()
+        WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)

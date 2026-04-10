@@ -11,7 +11,7 @@ import WidgetKit
 
 struct MainTab: View {
     @Environment(ThemeManager.self) private var themeManager
-    @State private var selectedTab: AppTab = .dashboard
+    @Binding var selectedTab: AppTab
     @State private var notificationState = NotificationState.shared
     @State private var showWidgetPrompt = false
     @State private var hasCheckedWidget = false
@@ -70,7 +70,8 @@ struct MainTab: View {
 
 // MARK: - Preview
 #Preview {
-    MainTab()
+    @Previewable @State var tab: AppTab = .dashboard
+    MainTab(selectedTab: $tab)
         .modelContainer(DataController.preview)
         .environment(ThemeManager.shared)
 }

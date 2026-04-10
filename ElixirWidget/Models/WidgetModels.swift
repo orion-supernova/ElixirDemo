@@ -15,7 +15,9 @@ import WidgetKit
 enum WidgetConstants {
     static let appGroupID = "group.com.walhallaa.ElixirDemo"
     static let summaryKey = "widget_dose_summary_v1"
+    static let waterSummaryKey = "widget_water_summary_v1"
     static let deepLinkDashboard = "elixir://dashboard"
+    static let deepLinkWater = "elixir://water"
     static let widgetKind = "ElixirWidget"
 }
 
@@ -73,6 +75,78 @@ enum WidgetDoseStatus: String {
     case taken
     case missed
     case skipped
+}
+
+// MARK: - Water Widget Types
+
+struct WidgetWaterSummary: Codable {
+    let totalIntakeMl: Int
+    let goalMl: Int
+    let progress: Double
+    let streak: Int
+    let lastDrinkTime: Date?
+    let reminderIntervalHours: Int
+    let recentEntries: [WidgetWaterEntryItem]
+    let lastUpdated: Date
+
+    var isEmpty: Bool { goalMl == 0 }
+
+    /// Whether the user hasn't had water within their reminder interval.
+    func isWaterOverdue(at date: Date) -> Bool {
+        guard reminderIntervalHours > 0, let lastDrink = lastDrinkTime else {
+            return totalIntakeMl == 0
+        }
+        let intervalSeconds = Double(reminderIntervalHours) * 3600
+        return date.timeIntervalSince(lastDrink) >= intervalSeconds
+    }
+}
+
+struct WidgetWaterEntryItem: Codable, Identifiable {
+    let id: UUID
+    let amountMl: Int
+    let date: Date
+}
+
+// MARK: - Water Hydration State
+
+enum WaterHydrationState: Equatable {
+    case dehydrated
+    case thirsty
+    case hydrating
+    case fullyHydrated
+    case empty
+
+    static func from(progress: Double, hasGoal: Bool) -> WaterHydrationState {
+        if !hasGoal { return .empty }
+        switch progress {
+        case ..<0.25:  return .dehydrated
+        case ..<0.50:  return .thirsty
+        case ..<0.75:  return .hydrating
+        default:       return .fullyHydrated
+        }
+    }
+
+    var stateLabel: String {
+        switch self {
+        case .dehydrated:    return "Drink up!"
+        case .thirsty:       return "Stay hydrated!"
+        case .hydrating:     return "Keep going!"
+        case .fullyHydrated: return "Great job!"
+        case .empty:         return "Set a goal"
+        }
+    }
+}
+
+// MARK: - Water Shared Container Read
+
+extension WidgetWaterSummary {
+    static func readFromSharedContainer() -> WidgetWaterSummary? {
+        guard
+            let defaults = UserDefaults(suiteName: WidgetConstants.appGroupID),
+            let data = defaults.data(forKey: WidgetConstants.waterSummaryKey)
+        else { return nil }
+        return try? JSONDecoder().decode(WidgetWaterSummary.self, from: data)
+    }
 }
 
 // MARK: - Shared Container Read
@@ -174,12 +248,64 @@ enum WidgetState: Equatable {
     }
 }
 
+// MARK: - Display Type
+
+enum WidgetDisplayType: String {
+    case medication
+    case water
+    case both
+}
+
 // MARK: - Timeline Entry
 
 struct ElixirWidgetEntry: TimelineEntry {
     let date: Date
-    let summary: WidgetDoseSummary
+    let displayType: WidgetDisplayType
+    // Medication
+    let doseSummary: WidgetDoseSummary
     let widgetState: WidgetState
+    // Water
+    let waterSummary: WidgetWaterSummary
+    let hydrationState: WaterHydrationState
+
+    /// Whether water was logged within the last 5 minutes — triggers celebration UI.
+    var isCelebrating: Bool {
+        guard displayType != .medication,
+              let lastDrink = waterSummary.lastDrinkTime else { return false }
+        return date.timeIntervalSince(lastDrink) < 5 * 60
+    }
+
+    /// Amount of the most recent water entry, used for the "+Xml" celebration badge.
+    var lastDrinkAmountMl: Int? {
+        waterSummary.recentEntries.first?.amountMl
+    }
+
+    /// Convenience for medication-mode entries and previews.
+    static func medication(date: Date = .now, summary: WidgetDoseSummary, state: WidgetState) -> ElixirWidgetEntry {
+        ElixirWidgetEntry(
+            date: date, displayType: .medication,
+            doseSummary: summary, widgetState: state,
+            waterSummary: .empty, hydrationState: .empty
+        )
+    }
+
+    /// Convenience for water-mode entries and previews.
+    static func water(date: Date = .now, summary: WidgetWaterSummary, state: WaterHydrationState) -> ElixirWidgetEntry {
+        ElixirWidgetEntry(
+            date: date, displayType: .water,
+            doseSummary: .empty, widgetState: .empty,
+            waterSummary: summary, hydrationState: state
+        )
+    }
+
+    /// Convenience for both-mode entries and previews.
+    static func both(date: Date = .now, doseSummary: WidgetDoseSummary, widgetState: WidgetState, waterSummary: WidgetWaterSummary, hydrationState: WaterHydrationState) -> ElixirWidgetEntry {
+        ElixirWidgetEntry(
+            date: date, displayType: .both,
+            doseSummary: doseSummary, widgetState: widgetState,
+            waterSummary: waterSummary, hydrationState: hydrationState
+        )
+    }
 }
 
 // MARK: - Placeholder / Preview Data
@@ -241,6 +367,61 @@ extension WidgetDoseSummary {
             overdueCount: 0, nextDose: nil, todayDoseItems: [],
             lastUpdated: Date(),
             themeAccentHex: "94A3B8", themePrimaryHex: "64748B", themeSecondaryHex: "475569"
+        )
+    }
+}
+
+// MARK: - Water Preview Data
+
+extension WidgetWaterSummary {
+    static var placeholder: WidgetWaterSummary {
+        WidgetWaterSummary(
+            totalIntakeMl: 1200, goalMl: 2000, progress: 0.6, streak: 3,
+            lastDrinkTime: Date().addingTimeInterval(-1800),
+            reminderIntervalHours: 1,
+            recentEntries: [
+                WidgetWaterEntryItem(id: UUID(), amountMl: 500, date: Date().addingTimeInterval(-1800)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 200, date: Date().addingTimeInterval(-5400)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 500, date: Date().addingTimeInterval(-10800))
+            ],
+            lastUpdated: Date()
+        )
+    }
+
+    static var fullyHydrated: WidgetWaterSummary {
+        WidgetWaterSummary(
+            totalIntakeMl: 2100, goalMl: 2000, progress: 1.0, streak: 7,
+            lastDrinkTime: Date().addingTimeInterval(-600),
+            reminderIntervalHours: 1,
+            recentEntries: [
+                WidgetWaterEntryItem(id: UUID(), amountMl: 200, date: Date().addingTimeInterval(-600)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 500, date: Date().addingTimeInterval(-3600)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 750, date: Date().addingTimeInterval(-7200)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 500, date: Date().addingTimeInterval(-14400)),
+                WidgetWaterEntryItem(id: UUID(), amountMl: 200, date: Date().addingTimeInterval(-21600))
+            ],
+            lastUpdated: Date()
+        )
+    }
+
+    static var dehydrated: WidgetWaterSummary {
+        WidgetWaterSummary(
+            totalIntakeMl: 200, goalMl: 2000, progress: 0.1, streak: 0,
+            lastDrinkTime: Date().addingTimeInterval(-14400),
+            reminderIntervalHours: 1,
+            recentEntries: [
+                WidgetWaterEntryItem(id: UUID(), amountMl: 200, date: Date().addingTimeInterval(-14400))
+            ],
+            lastUpdated: Date()
+        )
+    }
+
+    static var empty: WidgetWaterSummary {
+        WidgetWaterSummary(
+            totalIntakeMl: 0, goalMl: 2000, progress: 0, streak: 0,
+            lastDrinkTime: nil, reminderIntervalHours: 1,
+            recentEntries: [],
+            lastUpdated: Date()
         )
     }
 }

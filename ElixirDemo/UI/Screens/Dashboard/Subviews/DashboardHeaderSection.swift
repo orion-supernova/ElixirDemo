@@ -76,6 +76,7 @@ struct DashboardHeaderSection: View {
                     modelContext.delete(entry)
                 }
                 try? modelContext.save()
+                WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
             }
         } message: {
             Text("This will clear all water entries for today. Are you sure?")
