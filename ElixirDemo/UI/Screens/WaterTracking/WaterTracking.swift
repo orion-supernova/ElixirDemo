@@ -161,7 +161,7 @@ struct WaterTrackingContent: View {
                     }
 
                     HStack(spacing: Spacing.md) {
-                        AddWaterButton(amount: 0.05, label: "Sip", icon: "mouth.fill") { addWater(0.05) }
+                        AddWaterButton(amount: 0.025, label: "Sip", icon: "mouth.fill") { addWater(0.025) }
                         AddWaterButton(amount: 0.2, label: "200ml", icon: "cup.and.saucer.fill") { addWater(0.2) }
                         AddWaterButton(amount: 0.5, label: "500ml", icon: "drop.fill") { addWater(0.5) }
                         AddWaterButton(amount: 0.75, label: "750ml", icon: "mug.fill") { addWater(0.75) }

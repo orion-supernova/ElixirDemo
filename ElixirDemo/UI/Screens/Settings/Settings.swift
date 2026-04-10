@@ -35,23 +35,36 @@ struct Settings: View {
                 VStack(spacing: Spacing.xl) {
                     // Header
                     headerSection
-                    
+
                     // Profile Stats
                     if let stats = userStats {
                         profileSection(stats: stats)
                     }
-                    
-                    // Hydration
-                    hydrationSection
-                    
-                    // Dashboard Display
-                    dashboardDisplaySection
-                    
-                    // Themes Hierarchy
-                    themeHierarchySection
-                    
-                    // About
-                    aboutSection
+
+                    // MARK: Preferences
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        sectionHeader("Preferences", icon: "slider.horizontal.3")
+
+                        dashboardDisplaySection
+
+                        hydrationSection
+                    }
+
+                    // MARK: Appearance
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        sectionHeader("Appearance", icon: "paintbrush.fill")
+
+                        themeHierarchySection
+                    }
+
+                    // MARK: System
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        sectionHeader("System", icon: "gear")
+
+                        ReminderStatusSection()
+
+                        aboutSection
+                    }
                 }
                 .padding(Spacing.md)
                 .padding(.bottom, 100)
@@ -129,6 +142,20 @@ struct Settings: View {
         AboutSection()
     }
 
+
+    // MARK: - Section Header
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(themeManager.currentTheme.primaryColor)
+            Text(title.uppercased())
+                .font(themeManager.currentTheme.font(for: .caption))
+                .foregroundColor(themeManager.currentTheme.textSecondary)
+                .tracking(1.2)
+        }
+        .padding(.leading, 4)
+    }
 
     // MARK: - Helpers
     private func loadUserStats() {

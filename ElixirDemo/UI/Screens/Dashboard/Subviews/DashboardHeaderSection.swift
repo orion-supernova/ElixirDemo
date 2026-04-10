@@ -12,7 +12,7 @@ struct DashboardHeaderSection: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(\.modelContext) private var modelContext
 
-    @Binding var showingWaterTracking: Bool
+    @Binding var selectedTab: AppTab
     @Binding var showingWaterHistory: Bool
     @Binding var showingResetConfirmation: Bool
 
@@ -36,7 +36,7 @@ struct DashboardHeaderSection: View {
             if (waterSettings.first?.activeDashboardMode ?? .both) != .waterOnly {
                 // Streak Badge (Water Streak)
                 Button(action: {
-                    showingWaterTracking = true
+                    selectedTab = .hydration
                 }) {
                     VStack(spacing: 2) {
                         Image(systemName: "water.waves")
@@ -60,11 +60,6 @@ struct DashboardHeaderSection: View {
                             .stroke(themeManager.currentTheme.primaryColor.opacity(0.2), lineWidth: 1)
                     )
                 }
-            }
-        }
-        .fullScreenCover(isPresented: $showingWaterTracking) {
-            NavigationStack {
-                WaterTracking()
             }
         }
         .fullScreenCover(isPresented: $showingWaterHistory) {
@@ -136,12 +131,12 @@ struct DashboardHeaderSection: View {
 }
 
 #Preview {
-    @Previewable @State var showingWaterTracking = false
+    @Previewable @State var selectedTab: AppTab = .dashboard
     @Previewable @State var showingWaterHistory = false
     @Previewable @State var showingResetConfirmation = false
 
     DashboardHeaderSection(
-        showingWaterTracking: $showingWaterTracking,
+        selectedTab: $selectedTab,
         showingWaterHistory: $showingWaterHistory,
         showingResetConfirmation: $showingResetConfirmation
     )

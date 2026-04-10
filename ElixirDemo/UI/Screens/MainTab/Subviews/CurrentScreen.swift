@@ -14,10 +14,10 @@ struct CurrentScreen: View {
     var body: some View {
         switch selectedTab {
         case .dashboard:
-            Dashboard()
+            Dashboard(selectedTab: .constant(.dashboard))
 
-        case .add:
-            AddMedication()
+        case .hydration:
+            HydrationTab()
 
         case .settings:
             Settings()
