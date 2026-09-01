@@ -15,7 +15,9 @@ import Foundation
 enum WidgetConstants {
     static let appGroupID = "group.com.walhallaa.ElixirDemo"
     static let summaryKey = "widget_dose_summary_v1"
+    static let waterSummaryKey = "widget_water_summary_v1"
     static let deepLinkDashboard = "elixir://dashboard"
+    static let deepLinkWater = "elixir://water"
     static let widgetKind = "ElixirWidget"
 }
 
@@ -63,4 +65,23 @@ enum WidgetDoseStatus: String {
     case taken
     case missed
     case skipped
+}
+
+// MARK: - Water Widget Types
+
+struct WidgetWaterSummary: Codable {
+    let totalIntakeMl: Int
+    let goalMl: Int
+    let progress: Double
+    let streak: Int
+    let lastDrinkTime: Date?
+    let reminderIntervalHours: Int
+    let recentEntries: [WidgetWaterEntryItem]
+    let lastUpdated: Date
+}
+
+struct WidgetWaterEntryItem: Codable, Identifiable {
+    let id: UUID
+    let amountMl: Int
+    let date: Date
 }

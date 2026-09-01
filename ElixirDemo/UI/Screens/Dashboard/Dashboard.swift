@@ -11,10 +11,11 @@ import SwiftData
 struct Dashboard: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ThemeManager.self) private var themeManager
+    @Binding var selectedTab: AppTab
     @State private var viewModel: DashboardViewModel?
     @State private var doseLogToDelete: DoseLog?
     @State private var showDeleteConfirmation = false
-    @State private var showingWaterTracking = false
+    @State private var showingAddRitual = false
     @State private var showingWaterHistory = false
     @State private var showingResetConfirmation = false
 
@@ -35,7 +36,7 @@ struct Dashboard: View {
 
                             // Header Section
                             DashboardHeaderSection(
-                                showingWaterTracking: $showingWaterTracking,
+                                selectedTab: $selectedTab,
                                 showingWaterHistory: $showingWaterHistory,
                                 showingResetConfirmation: $showingResetConfirmation
                             )
@@ -43,30 +44,24 @@ struct Dashboard: View {
                             if mode == .waterOnly {
                                 WaterTrackingContent(showHistory: $showingWaterHistory, showReset: $showingResetConfirmation)
                             } else {
-                                if mode == .both {
-                                    // Water Stats
-                                    WaterStatsSection()
-                                }
-
                                 if mode == .both || mode == .medicationOnly {
-                                    // Medication Progress
-                                    TodayProgressSection(viewModel: viewModel)
+                                    // Today's Overview (progress ring + stats)
+                                    TodayOverviewSection(viewModel: viewModel)
 
-                                    // Dose List
+                                    // Today's Rituals
                                     DoseListSection(
                                         viewModel: viewModel,
                                         doseLogToDelete: $doseLogToDelete,
                                         showDeleteConfirmation: $showDeleteConfirmation
                                     )
 
-                                    // Stats Summary
-                                    DashboardStatsSummary(viewModel: viewModel)
-
                                     // Weekly Overview
                                     WeeklyOverviewSection()
+                                }
 
-                                    // Notification Status (Budget Manager)
-                                    NotificationStatusSection()
+                                if mode == .both {
+                                    // Water Stats
+                                    WaterStatsSection()
                                 }
                             }
                         }
@@ -75,13 +70,8 @@ struct Dashboard: View {
                         .padding(.bottom, 100)
                     }
                 }
-                .sheet(isPresented: Binding(
-                    get: { viewModel.showWidgetPrompt },
-                    set: { if !$0 { viewModel.dismissWidgetPrompt() } }
-                )) {
-                    AddWidgetSheet(onDismiss: { viewModel.dismissWidgetPrompt() })
-                        .environment(themeManager)
-                }
+
+
             } else {
                 ProgressView()
                     .tint(themeManager.currentTheme.primaryColor)
@@ -92,6 +82,22 @@ struct Dashboard: View {
                 viewModel = DashboardViewModel(modelContext: modelContext)
             } else {
                 viewModel?.refresh()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingAddRitual = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddRitual) {
+            NavigationStack {
+                AddMedication()
             }
         }
         .alert("Delete Ritual?", isPresented: $showDeleteConfirmation) {
@@ -128,7 +134,7 @@ struct Dashboard: View {
         configurations: [modelConfiguration]
     )
 
-    return Dashboard()
+    return Dashboard(selectedTab: .constant(.dashboard))
         .modelContainer(container)
         .environment(ThemeManager.shared)
 }

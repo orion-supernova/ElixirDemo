@@ -13,7 +13,7 @@ struct LargeWidgetView: View {
     let entry: ElixirWidgetEntry
 
     private var state: WidgetState { entry.widgetState }
-    private var summary: WidgetDoseSummary { entry.summary }
+    private var summary: WidgetDoseSummary { entry.doseSummary }
 
     var body: some View {
         ZStack {
@@ -186,7 +186,7 @@ struct LargeWidgetView: View {
         HStack {
             Image(systemName: "clock")
                 .font(.system(size: 9))
-            Text("Updated \(relativeTimeString(entry.summary.lastUpdated))")
+            Text("Updated \(relativeTimeString(entry.doseSummary.lastUpdated))")
                 .font(.system(size: 10, design: .rounded))
         }
         .foregroundStyle(Color.white.opacity(0.25))
@@ -280,23 +280,23 @@ struct LargeWidgetView: View {
 #Preview("Large – All Done", as: .systemLarge) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .allDone, widgetState: .allDone)
+    ElixirWidgetEntry.medication(summary: .allDone, state: .allDone)
 }
 
 #Preview("Large – Upcoming", as: .systemLarge) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(2700)))
+    ElixirWidgetEntry.medication(summary: .placeholder, state: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(2700)))
 }
 
 #Preview("Large – Overdue", as: .systemLarge) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .overdue, widgetState: .overdue(count: 2))
+    ElixirWidgetEntry.medication(summary: .overdue, state: .overdue(count: 2))
 }
 
 #Preview("Large – Empty", as: .systemLarge) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .empty, widgetState: .empty)
+    ElixirWidgetEntry.medication(summary: .empty, state: .empty)
 }

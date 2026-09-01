@@ -13,6 +13,7 @@ struct ElixirDemoApp: App {
     @State private var themeManager = ThemeManager.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var lastRefreshDate: Date?
+    @State private var selectedTab: AppTab = .dashboard
 
     init() {
         // Register background tasks on app launch
@@ -21,16 +22,22 @@ struct ElixirDemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTab()
+            MainTab(selectedTab: $selectedTab)
                 .preferredColorScheme(.dark)
                 .environment(themeManager)
                 .onAppear {
                     NotificationManager.shared.requestAuthorization()
                 }
                 .onOpenURL { url in
-                    // Widget deep link: "elixir://dashboard" opens the app to the Dashboard tab.
-                    // MainTab already lands on Dashboard by default, so no additional routing needed.
-                    print("📲 Opened via URL: \(url)")
+                    guard url.scheme == "elixir" else { return }
+                    switch url.host {
+                    case "water":
+                        selectedTab = .hydration
+                    case "dashboard":
+                        selectedTab = .dashboard
+                    default:
+                        break
+                    }
                 }
         }
         .modelContainer(DataController.shared.container)

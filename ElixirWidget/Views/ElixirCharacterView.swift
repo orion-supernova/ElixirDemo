@@ -357,23 +357,23 @@ struct ElixirCharacterView: View {
 #Preview("All Done", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .allDone, widgetState: .allDone)
+    ElixirWidgetEntry.medication(summary: .allDone, state: .allDone)
 }
 
 #Preview("Upcoming", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .placeholder, widgetState: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(1800)))
+    ElixirWidgetEntry.medication(summary: .placeholder, state: .upcoming(nextDoseName: "Omega-3", dueDate: .now.addingTimeInterval(1800)))
 }
 
 #Preview("Overdue", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .overdue, widgetState: .overdue(count: 2))
+    ElixirWidgetEntry.medication(summary: .overdue, state: .overdue(count: 2))
 }
 
 #Preview("Empty", as: .systemMedium) {
     ElixirWidget()
 } timeline: {
-    ElixirWidgetEntry(date: .now, summary: .empty, widgetState: .empty)
+    ElixirWidgetEntry.medication(summary: .empty, state: .empty)
 }

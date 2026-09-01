@@ -161,7 +161,7 @@ struct WaterTrackingContent: View {
                     }
 
                     HStack(spacing: Spacing.md) {
-                        AddWaterButton(amount: 0.05, label: "Sip", icon: "mouth.fill") { addWater(0.05) }
+                        AddWaterButton(amount: 0.025, label: "Sip", icon: "mouth.fill") { addWater(0.025) }
                         AddWaterButton(amount: 0.2, label: "200ml", icon: "cup.and.saucer.fill") { addWater(0.2) }
                         AddWaterButton(amount: 0.5, label: "500ml", icon: "drop.fill") { addWater(0.5) }
                         AddWaterButton(amount: 0.75, label: "750ml", icon: "mug.fill") { addWater(0.75) }
@@ -296,6 +296,7 @@ struct WaterTrackingContent: View {
         generator.notificationOccurred(.success)
 
         try? modelContext.save()
+        WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
         // Timer to remove this specific ID after 30 seconds
         let idToRemove = entry.id
@@ -317,6 +318,7 @@ struct WaterTrackingContent: View {
         if let entryToDelete = todayEntries.first(where: { $0.id == lastID }) {
             modelContext.delete(entryToDelete)
             try? modelContext.save()
+            WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
@@ -329,6 +331,7 @@ struct WaterTrackingContent: View {
             if let lastEntry = todayEntries.last {
                 modelContext.delete(lastEntry)
                 try? modelContext.save()
+                WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
                 withAnimation { undoableEntryIDs.removeLast() }
             }
         }
@@ -342,6 +345,7 @@ struct WaterTrackingContent: View {
             modelContext.delete(entry)
         }
         try? modelContext.save()
+        WidgetDataManager.shared.syncWaterToWidget(modelContext: modelContext)
 
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)

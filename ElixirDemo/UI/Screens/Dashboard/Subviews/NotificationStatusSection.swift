@@ -16,40 +16,38 @@ struct NotificationStatusSection: View {
     @State private var showingBGTaskDetails = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            // Header
             HStack {
-                Text("Notification Status")
-                    .font(themeManager.currentTheme.font(for: .headline))
+                Text("Reminder Budget")
+                    .font(themeManager.currentTheme.font(for: .title3))
                     .foregroundColor(themeManager.currentTheme.textPrimary)
 
                 Spacer()
 
                 if budgetManager.isOverBudget {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 12))
-                        Text("Over Limit")
-                            .font(themeManager.currentTheme.font(for: .caption2))
-                    }
-                    .foregroundColor(themeManager.currentTheme.errorColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(themeManager.currentTheme.errorColor.opacity(0.1))
-                    .cornerRadius(8)
+                    Label("Needs Attention", systemImage: "exclamationmark.triangle.fill")
+                        .font(themeManager.currentTheme.font(for: .caption))
+                        .foregroundColor(themeManager.currentTheme.errorColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(themeManager.currentTheme.errorColor.opacity(0.12))
+                        .clipShape(Capsule())
                 }
             }
 
             // Budget usage bar
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("\(budgetManager.usedSlots) / 64 slots used")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                    Text("\(budgetManager.usedSlots) of 64 reminders active")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
 
                     Spacer()
 
                     Text("\(Int(budgetManager.getBudgetInfo().usagePercentage * 100))%")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                        .font(themeManager.currentTheme.font(for: .subheadline))
+                        .fontWeight(.medium)
                         .foregroundColor(budgetManager.isOverBudget ? themeManager.currentTheme.errorColor : themeManager.currentTheme.primaryColor)
                 }
 
@@ -69,75 +67,64 @@ struct NotificationStatusSection: View {
                         }
                     }
                 }
-                .frame(height: 8)
+                .frame(height: 10)
             }
 
-            Divider().background(Color.white.opacity(0.1))
-
             // Breakdown
-            HStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.sm) {
                 NotificationTypeCard(
                     icon: "pill.fill",
-                    label: "Medication Notification Slots",
+                    label: "Rituals",
                     count: budgetManager.medicationCount,
                     color: themeManager.currentTheme.errorColor
                 )
-                .onTapGesture {
-                    showingMedicationDetails = true
-                }
+                .onTapGesture { showingMedicationDetails = true }
 
                 NotificationTypeCard(
                     icon: "drop.fill",
-                    label: "Water Notification Slots",
+                    label: "Water",
                     count: budgetManager.waterCount,
                     color: themeManager.currentTheme.primaryColor
                 )
-                .onTapGesture {
-                    showingWaterDetails = true
-                }
+                .onTapGesture { showingWaterDetails = true }
 
                 if budgetManager.rescheduleReminderCount > 0 {
                     NotificationTypeCard(
                         icon: "arrow.clockwise",
-                        label: "Re-scheduler Notification Slots",
+                        label: "Backup",
                         count: budgetManager.rescheduleReminderCount,
                         color: themeManager.currentTheme.warningColor
                     )
-                    .onTapGesture {
-                        showingRescheduleDetails = true
-                    }
+                    .onTapGesture { showingRescheduleDetails = true }
                 }
             }
 
             if budgetManager.isOverBudget {
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle.fill")
-                        .font(.system(size: 14))
-                    Text("You've exceeded the 64 notification limit. Some reminders may not fire.")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                Label {
+                    Text("You've exceeded the reminder limit. Some may not fire on time.")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
                         .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "info.circle.fill")
                 }
                 .foregroundColor(themeManager.currentTheme.errorColor)
-                .padding(Spacing.sm)
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(themeManager.currentTheme.errorColor.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
 
-            Divider().background(Color.white.opacity(0.1))
-
-            // BGTask Status
+            // Auto-Refresh Status
             BGTaskStatusView()
-                .onTapGesture {
-                    showingBGTaskDetails = true
-                }
+                .onTapGesture { showingBGTaskDetails = true }
         }
         .padding(Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 16)
                 .stroke(budgetManager.isOverBudget ? themeManager.currentTheme.errorColor.opacity(0.3) : Color.white.opacity(0.1), lineWidth: 1)
         )
         .onAppear {
@@ -167,30 +154,30 @@ struct BGTaskStatusView: View {
     @State private var currentTime = Date()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text("Background Refresh Status")
-                .font(themeManager.currentTheme.font(for: .caption))
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("Auto-Refresh")
+                .font(themeManager.currentTheme.font(for: .subheadline))
                 .foregroundColor(themeManager.currentTheme.textSecondary)
 
-            HStack(spacing: Spacing.md) {
-                // App Refresh Task
-                HStack(spacing: 4) {
+            HStack(spacing: Spacing.lg) {
+                // Daily Refresh
+                HStack(spacing: 8) {
                     Image(systemName: "arrow.clockwise.circle.fill")
-                        .font(.system(size: 12))
+                        .font(.system(size: 18))
                         .foregroundColor(themeManager.currentTheme.primaryColor)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Daily Refresh")
-                            .font(themeManager.currentTheme.font(for: .caption2))
+                        Text("Daily")
+                            .font(themeManager.currentTheme.font(for: .subheadline))
                             .foregroundColor(themeManager.currentTheme.textPrimary)
 
                         if let nextRefresh = nextRefreshDate {
                             Text(timeUntil(nextRefresh))
-                                .font(themeManager.currentTheme.font(for: .caption2))
+                                .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.textSecondary)
                         } else {
-                            Text("Scheduled")
-                                .font(themeManager.currentTheme.font(for: .caption2))
+                            Text("Active")
+                                .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.successColor)
                         }
                     }
@@ -198,38 +185,38 @@ struct BGTaskStatusView: View {
 
                 Spacer()
 
-                // Processing Task
-                HStack(spacing: 4) {
-                    Image(systemName: "gearshape.circle.fill")
-                        .font(.system(size: 12))
+                // Weekly Deep Clean
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 18))
                         .foregroundColor(themeManager.currentTheme.warningColor)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Deep Clean")
-                            .font(themeManager.currentTheme.font(for: .caption2))
+                        Text("Weekly")
+                            .font(themeManager.currentTheme.font(for: .subheadline))
                             .foregroundColor(themeManager.currentTheme.textPrimary)
 
                         if let nextProcessing = nextProcessingDate {
                             Text(timeUntil(nextProcessing))
-                                .font(themeManager.currentTheme.font(for: .caption2))
+                                .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.textSecondary)
                         } else {
-                            Text("Scheduled")
-                                .font(themeManager.currentTheme.font(for: .caption2))
+                            Text("Active")
+                                .font(themeManager.currentTheme.font(for: .caption))
                                 .foregroundColor(themeManager.currentTheme.successColor)
                         }
                     }
                 }
             }
 
-            Text("BGTasks run automatically in background to keep notifications fresh")
-                .font(themeManager.currentTheme.font(for: .caption2))
+            Text("Reminders refresh automatically in the background")
+                .font(themeManager.currentTheme.font(for: .caption))
                 .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.6))
                 .padding(.top, 2)
         }
-        .padding(Spacing.sm)
-        .background(Color.white.opacity(0.03))
-        .cornerRadius(8)
+        .padding(Spacing.md)
+        .background(Color.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .onAppear {
             loadBGTaskStatus()
             startTimer()
@@ -329,36 +316,19 @@ struct MedicationDetailsSheet: View {
                 .background(.ultraThinMaterial)
 
                 // Description banner
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(themeManager.currentTheme.errorColor)
-                        Text("Active Medication Reminders")
-                            .font(themeManager.currentTheme.font(for: .subheadline))
-                            .foregroundColor(themeManager.currentTheme.textPrimary)
-                            .fontWeight(.semibold)
-                    }
+                HStack(spacing: 10) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(themeManager.currentTheme.errorColor)
 
-                    Text("These are notifications currently scheduled for your active rituals. Each ritual may have multiple reminders based on frequency (daily, every other day, weekly, specific days, etc.).")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                    Text("Each ritual may have multiple reminders based on its schedule. These refresh automatically in the background.")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 12))
-                            .foregroundColor(themeManager.currentTheme.errorColor.opacity(0.8))
-
-                        Text("These will automatically refresh via Daily Refresh (every ~24h) and Deep Clean (every ~7d) background tasks to keep your reminders active.")
-                            .font(themeManager.currentTheme.font(for: .caption2))
-                            .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.9))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, 4)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(themeManager.currentTheme.errorColor.opacity(0.1))
+                .background(themeManager.currentTheme.errorColor.opacity(0.08))
 
                 ScrollView {
                     LazyVStack(spacing: Spacing.lg) {
@@ -568,36 +538,19 @@ struct WaterDetailsSheet: View {
                 .background(.ultraThinMaterial)
 
                 // Description banner
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(themeManager.currentTheme.primaryColor)
-                        Text("Daily Hydration Reminders")
-                            .font(themeManager.currentTheme.font(for: .subheadline))
-                            .foregroundColor(themeManager.currentTheme.textPrimary)
-                            .fontWeight(.semibold)
-                    }
+                HStack(spacing: 10) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(themeManager.currentTheme.primaryColor)
 
-                    Text("Water reminders scheduled based on your hydration settings. These repeat daily at configured times and use your current theme's message.")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                    Text("Reminders repeat daily based on your hydration settings and refresh automatically.")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 12))
-                            .foregroundColor(themeManager.currentTheme.primaryColor.opacity(0.8))
-
-                        Text("These automatically refresh with Daily Refresh (every ~24h) to update with your latest theme and settings.")
-                            .font(themeManager.currentTheme.font(for: .caption2))
-                            .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.9))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, 4)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(themeManager.currentTheme.primaryColor.opacity(0.1))
+                .background(themeManager.currentTheme.primaryColor.opacity(0.08))
 
                 ScrollView {
                     LazyVStack(spacing: Spacing.md) {
@@ -737,36 +690,19 @@ struct RescheduleDetailsSheet: View {
                 .background(.ultraThinMaterial)
 
                 // Description banner
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "shield.checkered")
-                            .foregroundColor(themeManager.currentTheme.warningColor)
-                        Text("Failsafe Backup System")
-                            .font(themeManager.currentTheme.font(for: .subheadline))
-                            .foregroundColor(themeManager.currentTheme.textPrimary)
-                            .fontWeight(.semibold)
-                    }
+                HStack(spacing: 10) {
+                    Image(systemName: "shield.checkered")
+                        .font(.system(size: 16))
+                        .foregroundColor(themeManager.currentTheme.warningColor)
 
-                    Text("These reminders only fire if Daily Refresh and Deep Clean BGTasks fail to run automatically. They prompt you to manually refresh notifications as a backup.")
-                        .font(themeManager.currentTheme.font(for: .caption))
+                    Text("Backup reminders that only fire if automatic refresh fails. They're cancelled automatically when everything is working.")
+                        .font(themeManager.currentTheme.font(for: .subheadline))
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(themeManager.currentTheme.successColor.opacity(0.8))
-
-                        Text("If BGTasks work properly (Daily ~24h, Weekly ~7d), these reschedule reminders get automatically cancelled and won't bother you.")
-                            .font(themeManager.currentTheme.font(for: .caption2))
-                            .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.9))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, 4)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(themeManager.currentTheme.warningColor.opacity(0.1))
+                .background(themeManager.currentTheme.warningColor.opacity(0.08))
 
                 ScrollView {
                     LazyVStack(spacing: Spacing.md) {
@@ -1043,12 +979,12 @@ struct FeatureRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.system(size: 16))
                 .foregroundColor(color.opacity(0.8))
-                .frame(width: 20)
+                .frame(width: 24)
 
             Text(text)
-                .font(themeManager.currentTheme.font(for: .caption))
+                .font(themeManager.currentTheme.font(for: .subheadline))
                 .foregroundColor(themeManager.currentTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -1064,26 +1000,35 @@ struct NotificationTypeCard: View {
     let color: Color
 
     var body: some View {
-        VStack(spacing: Spacing.xs) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundColor(color)
+        VStack(spacing: Spacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 40, height: 40)
+
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(color)
+            }
 
             Text("\(count)")
-                .font(themeManager.currentTheme.font(for: .title3))
+                .font(themeManager.currentTheme.font(for: .title2))
+                .fontWeight(.semibold)
                 .foregroundColor(themeManager.currentTheme.textPrimary)
-                .multilineTextAlignment(.center)
 
             Text(label)
-                .font(themeManager.currentTheme.font(for: .caption2))
+                .font(themeManager.currentTheme.font(for: .caption))
                 .foregroundColor(themeManager.currentTheme.textSecondary)
-                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.sm)
+        .padding(.vertical, Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(color.opacity(0.1))
+            RoundedRectangle(cornerRadius: 12)
+                .fill(color.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(color.opacity(0.15), lineWidth: 1)
         )
     }
 }

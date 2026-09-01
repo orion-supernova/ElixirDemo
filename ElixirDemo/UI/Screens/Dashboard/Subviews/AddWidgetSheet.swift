@@ -35,11 +35,20 @@ struct AddWidgetSheet: View {
     @ViewBuilder
     private var header: some View {
         VStack(spacing: 12) {
-            // Character preview — three states side by side
-            HStack(spacing: 16) {
-                MiniCharacter(state: .overdue,   size: 52)
-                MiniCharacter(state: .upcoming,  size: 64)
-                MiniCharacter(state: .allDone,   size: 52)
+            // Character preview — medication + water mascots
+            HStack(spacing: 24) {
+                VStack(spacing: 6) {
+                    MiniCharacter(state: .allDone, size: 56)
+                    Text("Medication")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(themeManager.currentTheme.textSecondary.opacity(0.7))
+                }
+                VStack(spacing: 6) {
+                    MiniWaterDroplet(state: .hydrated, size: 56)
+                    Text("Water")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(themeManager.currentTheme.textSecondary.opacity(0.7))
+                }
             }
             .padding(.bottom, 4)
 
@@ -48,7 +57,7 @@ struct AddWidgetSheet: View {
                 .foregroundStyle(themeManager.currentTheme.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text("Stay on top of your ritual from your\nhome screen — at a glance.")
+            Text("Track your meds or hydration right\nfrom your home screen — pick your mode.")
                 .font(.system(size: 15, design: .rounded))
                 .foregroundStyle(themeManager.currentTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -85,7 +94,7 @@ struct AddWidgetSheet: View {
                 StepRow(number: 2, text: "Tap the  +  button in the top-left corner", isLast: false)
                 StepRow(number: 3, text: "Search for \"Elixir\" and tap it", isLast: false)
                 StepRow(number: 4, text: "Swipe to choose Small, Medium or Large", isLast: false)
-                StepRow(number: 5, text: "Tap Add Widget — done!", isLast: true)
+                StepRow(number: 5, text: "Tap Add Widget, then long press it to choose Medication or Water mode", isLast: true)
             }
             .background(
                 RoundedRectangle(cornerRadius: 16)
@@ -257,6 +266,132 @@ private struct MiniCharacter: View {
         case .upcoming: return 0.5
         case .overdue:  return 0.18
         }
+    }
+}
+
+// MARK: - Mini Water Droplet (main app standalone)
+
+private struct MiniWaterDroplet: View {
+    enum DropState { case hydrated, thirsty }
+
+    let state: DropState
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            // Glow
+            Circle()
+                .fill(glowColor.opacity(0.3))
+                .frame(width: size * 1.3, height: size * 1.3)
+                .blur(radius: size * 0.2)
+
+            // Droplet body
+            MiniDropletShape()
+                .fill(bodyGradient)
+                .frame(width: size * 0.65, height: size)
+                .overlay(
+                    MiniDropletShape()
+                        .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+                )
+
+            // Face
+            VStack(spacing: size * 0.06) {
+                HStack(spacing: size * 0.16) {
+                    dropEye(isLeft: true)
+                    dropEye(isLeft: false)
+                }
+                dropMouth
+            }
+            .offset(y: size * 0.06)
+        }
+        .frame(width: size, height: size * 1.3)
+    }
+
+    @ViewBuilder
+    private func dropEye(isLeft: Bool) -> some View {
+        let s = size * 0.12
+        switch state {
+        case .hydrated:
+            ZStack {
+                Circle().fill(Color.white).frame(width: s, height: s)
+                Circle().fill(bodyGradient).frame(width: s, height: s).offset(y: -s * 0.35)
+            }.frame(width: s, height: s * 0.7).clipped()
+        case .thirsty:
+            ZStack {
+                Circle().fill(Color.white).frame(width: s * 1.1, height: s * 1.1)
+                Circle().fill(Color(red: 0.1, green: 0.1, blue: 0.2)).frame(width: s * 0.5, height: s * 0.5)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var dropMouth: some View {
+        let w = size * 0.22
+        let h = size * 0.1
+        switch state {
+        case .hydrated:
+            Path { p in
+                p.move(to: CGPoint(x: 0, y: 0))
+                p.addQuadCurve(to: CGPoint(x: w, y: 0), control: CGPoint(x: w / 2, y: h))
+            }
+            .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.03, lineCap: .round))
+            .frame(width: w, height: h)
+        case .thirsty:
+            Circle()
+                .stroke(Color.white, lineWidth: size * 0.03)
+                .frame(width: size * 0.09, height: size * 0.09)
+        }
+    }
+
+    private var glowColor: Color {
+        switch state {
+        case .hydrated: return Color(red: 0.13, green: 0.83, blue: 0.93)
+        case .thirsty:  return Color(red: 0.96, green: 0.62, blue: 0.04)
+        }
+    }
+
+    private var bodyGradient: LinearGradient {
+        switch state {
+        case .hydrated:
+            return LinearGradient(colors: [Color(red: 0.13, green: 0.83, blue: 0.93), Color(red: 0.05, green: 0.65, blue: 0.91)], startPoint: .top, endPoint: .bottom)
+        case .thirsty:
+            return LinearGradient(colors: [Color(red: 0.96, green: 0.62, blue: 0.04), Color(red: 0.85, green: 0.47, blue: 0.02)], startPoint: .top, endPoint: .bottom)
+        }
+    }
+}
+
+private struct MiniDropletShape: InsettableShape {
+    var insetAmount: CGFloat = 0
+
+    func inset(by amount: CGFloat) -> MiniDropletShape {
+        MiniDropletShape(insetAmount: insetAmount + amount)
+    }
+
+    func path(in rect: CGRect) -> Path {
+        let rect = rect.insetBy(dx: insetAmount, dy: insetAmount)
+        let w = rect.width
+        let h = rect.height
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + h * 0.55),
+            control: CGPoint(x: rect.maxX - w * 0.08, y: rect.minY + h * 0.18)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.midX, y: rect.maxY),
+            control1: CGPoint(x: rect.maxX, y: rect.minY + h * 0.82),
+            control2: CGPoint(x: rect.midX + w * 0.22, y: rect.maxY)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.minX, y: rect.minY + h * 0.55),
+            control1: CGPoint(x: rect.midX - w * 0.22, y: rect.maxY),
+            control2: CGPoint(x: rect.minX, y: rect.minY + h * 0.82)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.midX, y: rect.minY),
+            control: CGPoint(x: rect.minX + w * 0.08, y: rect.minY + h * 0.18)
+        )
+        return path
     }
 }
 

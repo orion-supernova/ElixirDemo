@@ -14,7 +14,7 @@ struct CircularMenu: View {
     
     let menuItems: [MenuItem] = [
         MenuItem(tab: .dashboard, icon: "house.fill", label: "Dashboard"),
-        MenuItem(tab: .add, icon: "plus.circle.fill", label: "Add"),
+        MenuItem(tab: .hydration, icon: "drop.fill", label: "Hydration"),
         MenuItem(tab: .settings, icon: "gearshape.fill", label: "Settings")
     ]
     
@@ -176,7 +176,7 @@ struct MenuItem: Identifiable {
 // MARK: - App Tab Enum
 enum AppTab: String, CaseIterable {
     case dashboard = "Dashboard"
-    case add = "Add Ritual"
+    case hydration = "Hydration"
     case settings = "Settings"
 }
 

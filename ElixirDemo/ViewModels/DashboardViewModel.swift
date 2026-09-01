@@ -21,7 +21,8 @@ final class DashboardViewModel {
     var selectedDate: Date = Date()
     var doseLogs: [DoseLog] = []
     var userStats: UserStats?
-    var showWidgetPrompt: Bool = false
+
+
 
     // Computed Properties
     var todayProgress: Double {
@@ -59,14 +60,12 @@ final class DashboardViewModel {
         loadUserStats()
         loadDoseLogsForSelectedDate()
         WidgetDataManager.shared.syncToWidget(modelContext: modelContext)
-        checkWidgetInstalled()
     }
-    
+
     func refresh() {
         ensureLogsExistForCurrentWeek()
         loadUserStats()
         loadDoseLogsForSelectedDate()
-        checkWidgetInstalled()
     }
 
     // MARK: - Ensure Logs Exist
@@ -239,29 +238,8 @@ final class DashboardViewModel {
         }
     }
     
-    // MARK: - Widget Prompt
 
-    func checkWidgetInstalled() {
-        WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
-        Task {
-            let result = await withCheckedContinuation { continuation in
-                WidgetCenter.shared.getCurrentConfigurations { result in
-                    continuation.resume(returning: result)
-                }
-            }
-            if case .success(let widgets) = result, widgets.isEmpty {
-                showWidgetPrompt = true
-            } else {
-                showWidgetPrompt = false
-            }
-            let hm = try await WidgetCenter.shared.currentConfigurations()
-            print(hm)
-        }
-    }
 
-    func dismissWidgetPrompt() {
-        showWidgetPrompt = false
-    }
 
     // MARK: - Deletion
     func deleteMedication(for doseLog: DoseLog) {
